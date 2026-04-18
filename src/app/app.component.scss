@@ -1,0 +1,18 @@
+/* Component styles are in global styles.scss */
+// Force DD-MM-YYYY display format on date inputs
+input[type="date"]::-webkit-datetime-edit-fields-wrapper {
+  direction: ltr;
+}
+
+input[type="date"]::-webkit-datetime-edit-day-field,
+input[type="date"]::-webkit-datetime-edit-month-field,
+input[type="date"]::-webkit-datetime-edit-year-field {
+  // reorder via flex — works in Chrome/Edge
+}
+
+input[type="date"] {
+  &::-webkit-datetime-edit {
+    display: flex;
+    gap: 1px;
+  }
+}
