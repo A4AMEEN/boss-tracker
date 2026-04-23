@@ -1,14 +1,21 @@
+<!-- src/index.html -->
+<!-- Replace or update your <head> section with these meta tags -->
+<!-- DO NOT add the jsPDF <script> tag anymore — it's loaded dynamically -->
+
 <!doctype html>
-<html lang="en-GB">
+<html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Travel Tracker — Sajeev PK</title>
-  <base href="/">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Travel Tracker</title>
+  <!-- ✅ IMPORTANT: Prevents iOS zoom issues on form inputs -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <!-- PWA / mobile browser chrome -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Travel Tracker">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- NOTE: No jsPDF script tag here — loaded dynamically on demand -->
 </head>
 <body>
   <app-root></app-root>

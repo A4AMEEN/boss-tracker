@@ -7,6 +7,12 @@ export interface Trip {
   returnDate: string | Date;
   daysCount?: number;
   notes?: string;
+  issueDate?: string | Date | null;
+  airline?: string;
+  travelClass?: 'Economy' | 'Business' | 'First' | 'Premium Economy' | '';
+  sector?: string;
+  fare?: number | null;
+  fareCurrency?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -17,7 +23,13 @@ export interface TripFilter {
   month?: string;
   startDate?: string;
   endDate?: string;
+  username?: string;
+  airline?: string;
+  travelClass?: string;
 }
+
+export interface MonthlyStats { month: string; india: number; uae: number; tripsToIndia: number; tripsToUAE: number; }
+export interface YearlyStats  { year: string;  india: number; uae: number; tripsToIndia: number; tripsToUAE: number; }
 
 export interface Stats {
   totalTrips: number;
@@ -26,23 +38,10 @@ export interface Stats {
   daysInIndia: number;
   daysInUAE: number;
   totalDays: number;
-  monthly: MonthlyBreakdown[];
-  yearly: YearlyBreakdown[];
+  monthly: MonthlyStats[];
+  yearly: YearlyStats[];
   availableYears: number[];
-}
-
-export interface MonthlyBreakdown {
-  month: string;
-  india: number;
-  uae: number;
-  tripsToIndia: number;
-  tripsToUAE: number;
-}
-
-export interface YearlyBreakdown {
-  year: string;
-  india: number;
-  uae: number;
-  tripsToIndia: number;
-  tripsToUAE: number;
+  availableFinancialYears?: string[];
+  availableUsernames?: string[];
+  note?: string;
 }

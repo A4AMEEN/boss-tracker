@@ -1,3 +1,4 @@
+// src/app/services/trip.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -7,17 +8,14 @@ import { Trip, TripFilter, Stats } from '../models/trip.model';
 export class TripService {
   private apiUrl = 'https://tracker-backend-self.vercel.app/api';
 
-
   constructor(private http: HttpClient) {}
 
-  getTrips(filter?: TripFilter): Observable<{ success: boolean; data: Trip[]; count: number }> {
+  getTrips(filter?: any): Observable<{ success: boolean; data: Trip[]; count: number }> {
     let params = new HttpParams();
     if (filter) {
-      if (filter.direction) params = params.set('direction', filter.direction);
-      if (filter.year) params = params.set('year', filter.year);
-      if (filter.month) params = params.set('month', filter.month);
-      if (filter.startDate) params = params.set('startDate', filter.startDate);
-      if (filter.endDate) params = params.set('endDate', filter.endDate);
+      Object.entries(filter).forEach(([k, v]) => {
+        if (v !== undefined && v !== null && v !== '') params = params.set(k, String(v));
+      });
     }
     return this.http.get<{ success: boolean; data: Trip[]; count: number }>(
       `${this.apiUrl}/trips`, { params }
@@ -36,13 +34,14 @@ export class TripService {
     return this.http.delete<{ success: boolean; message: string }>(`${this.apiUrl}/trips/${id}`);
   }
 
-  getStats(year?: string): Observable<{ success: boolean; data: Stats }> {
+  getStats(year?: string, username?: string): Observable<{ success: boolean; data: Stats }> {
     let params = new HttpParams();
-    if (year) params = params.set('year', year);
+    if (year)     params = params.set('year',     year);
+    if (username) params = params.set('username', username);
     return this.http.get<{ success: boolean; data: Stats }>(`${this.apiUrl}/stats/summary`, { params });
   }
 
-  getAvailableYears(): Observable<{ success: boolean; data: number[] }> {
-    return this.http.get<{ success: boolean; data: number[] }>(`${this.apiUrl}/stats/years`);
+  getAvailableYears(): Observable<{ success: boolean; data: any }> {
+    return this.http.get<{ success: boolean; data: any }>(`${this.apiUrl}/stats/years`);
   }
 }
