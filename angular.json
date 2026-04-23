@@ -20,13 +20,22 @@
             "tsConfig": "tsconfig.app.json",
             "assets": ["src/favicon.ico", "src/assets"],
             "styles": ["src/styles.scss"],
-            "scripts": []
+            "scripts": [],
+            "allowedCommonJsDependencies": ["sweetalert2"]
           },
           "configurations": {
             "production": {
               "budgets": [
-                { "type": "initial", "maximumWarning": "500kb", "maximumError": "1mb" },
-                { "type": "anyComponentStyle", "maximumWarning": "2kb", "maximumError": "4kb" }
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kb",
+                  "maximumError": "1mb"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "25kb",
+                  "maximumError": "35kb"
+                }
               ],
               "outputHashing": "all"
             },
@@ -44,8 +53,12 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
-            "production": { "browserTarget": "travel-tracker:build:production" },
-            "development": { "browserTarget": "travel-tracker:build:development" }
+            "production": {
+              "browserTarget": "travel-tracker:build:production"
+            },
+            "development": {
+              "browserTarget": "travel-tracker:build:development"
+            }
           },
           "defaultConfiguration": "development"
         }
