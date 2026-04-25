@@ -150,6 +150,37 @@
             <input type="date" class="form-input" [(ngModel)]="tripForm.returnDate" [min]="tripForm.departureDate"/>
           </div>
         </div>
+        <!-- Arrival time (UAE→India) -->
+<div class="form-row" *ngIf="tripForm.direction==='UAE_TO_INDIA'">
+  <div class="form-group">
+    <label class="form-label">
+      Arrival Time in India (IST)
+      <span class="optional"> — used for accurate day count</span>
+    </label>
+    <input type="time" class="form-input" [(ngModel)]="tripForm.arrivalTime"
+           placeholder="HH:MM"/>
+    <span class="form-hint" *ngIf="tripForm.arrivalTime">
+      Arrival on {{ tripForm.departureDate | date:'dd MMM' }} at {{ tripForm.arrivalTime }} IST counts as a day in India
+    </span>
+  </div>
+  <div class="form-group"></div>
+</div>
+
+<!-- Departure time (India→UAE) -->
+<div class="form-row" *ngIf="tripForm.direction==='INDIA_TO_UAE'">
+  <div class="form-group">
+    <label class="form-label">
+      Departure Time from India (IST)
+      <span class="optional"> — departure day not counted as India day</span>
+    </label>
+    <input type="time" class="form-input" [(ngModel)]="tripForm.departureTime"
+           placeholder="HH:MM"/>
+    <span class="form-hint">
+      {{ tripForm.departureDate | date:'dd MMM' }} is your last day in India but will NOT be counted
+    </span>
+  </div>
+  <div class="form-group"></div>
+</div>
 
         <div class="duration-preview" *ngIf="tripForm.departureDate && tripForm.returnDate">
           <svg viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/><path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/></svg>
@@ -340,6 +371,9 @@
     </section>
 
     <!-- ── HISTORY ────────────────────────────────────────────── -->
+     <div class="alert alert-warning" *ngIf="nriWarning" style="background:#fff3cd;border:1fvpx solid #ffc107;border-radius:8px;padding:12px 16px;margin-bottom:16px;color:#856404;font-weight:500;">
+  {{ nriWarning }}
+</div>
     <section *ngIf="activeTab()==='history'" class="section fade-in">
       <div class="section-header">
         <h2 class="section-title">📊 Travel History</h2>

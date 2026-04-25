@@ -85,6 +85,8 @@ export class AppComponent implements OnInit {
       direction: 'UAE_TO_INDIA', departureDate: '', returnDate: '',
       issueDate: '', airline: '', travelClass: '', sector: '',
       fare: null, fareCurrency: 'AED', notes: '',
+      arrivalTime:   null,
+departureTime: null,
     };
   }
 
@@ -256,6 +258,8 @@ export class AppComponent implements OnInit {
       sector:        this.tripForm.sector        || '',
       fare:          (fareVal !== null && fareVal !== undefined && (fareVal as any) !== '') ? Number(fareVal) : null,
       fareCurrency:  this.tripForm.fareCurrency  || 'AED',
+      arrivalTime:   this.tripForm.direction === 'UAE_TO_INDIA' ? (this.tripForm.arrivalTime || null) : null,
+departureTime: this.tripForm.direction === 'INDIA_TO_UAE' ? (this.tripForm.departureTime || null) : null,
     };
     const op = this.editingId
       ? this.tripService.updateTrip(this.editingId, payload)
@@ -289,6 +293,8 @@ export class AppComponent implements OnInit {
       fare:          trip.fare !== null && trip.fare !== undefined ? Number(trip.fare) : null,
       fareCurrency:  trip.fareCurrency || 'AED',
       notes:         trip.notes        || '',
+      arrivalTime:   trip.arrivalTime   || null,
+departureTime: trip.departureTime || null,
     };
     this.activeTab.set('add');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -638,4 +644,30 @@ doc.save(fileName);
   getUserInitials(user: User): string {
     return `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase();
   }
+
+  // Financial year: April 1 → March 31
+getFinancialYearIndiaDays(year: number): number {
+  const fy = this.stats()?.yearly || [];
+  // FY spans two calendar years — sum April–Dec of `year` + Jan–Mar of `year+1`
+  const monthly = this.stats()?.monthly || [];
+  const fyMonths = [
+    ...Array.from({length: 9}, (_, i) => `${year}-${String(i + 4).padStart(2, '0')}`),   // Apr–Dec
+    ...Array.from({length: 3}, (_, i) => `${year+1}-${String(i + 1).padStart(2, '0')}`), // Jan–Mar
+  ];
+  return monthly
+    .filter(m => fyMonths.includes(m.month))
+    .reduce((sum, m) => sum + m.india, 0);
+}
+
+get nriWarning(): string | null {
+  const currentFYStart = new Date().getMonth() >= 3   // April onwards
+    ? new Date().getFullYear()
+    : new Date().getFullYear() - 1;
+  const days = this.getFinancialYearIndiaDays(currentFYStart);
+  const remaining = 181 - days;  // 182+ = loses NRI status
+  if (days >= 182) return `⚠️ NRI status at risk! ${days} days in India in FY ${currentFYStart}-${currentFYStart+1} (limit: 181)`;
+  if (remaining <= 30) return `⚠️ Only ${remaining} more days allowed in India this FY before NRI status is affected`;
+  return null;
+}
+
 }

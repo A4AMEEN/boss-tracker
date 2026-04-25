@@ -15,6 +15,8 @@ export interface Trip {
   fareCurrency?: string;
   createdAt?: string;
   updatedAt?: string;
+   arrivalTime?:   string | null;   // "HH:MM" IST — UAE→India
+  departureTime?: string | null;   // "HH:MM" IST — India→UAE
 }
 
 export interface TripFilter {
