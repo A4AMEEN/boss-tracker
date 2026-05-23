@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TripService } from './services/trip.service';
 import { UserService } from './services/user.service';
-import { Trip, TripFilter, Stats } from './models/trip.model';
+import { Trip, Stats } from './models/trip.model';
 import { User } from './models/user.model';
 import Swal from 'sweetalert2';
 
@@ -18,47 +18,47 @@ type ActiveTab = 'add' | 'list' | 'history' | 'users';
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent implements OnInit {
-  activeTab      = signal<ActiveTab>('add');
-  trips          = signal<Trip[]>([]);
-  stats          = signal<Stats | null>(null);
-  users          = signal<User[]>([]);
-  availableYears = signal<number[]>([]);
+  activeTab          = signal<ActiveTab>('add');
+  trips              = signal<Trip[]>([]);
+  stats              = signal<Stats | null>(null);
+  users              = signal<User[]>([]);
+  availableYears     = signal<number[]>([]);
   availableUsernames = signal<string[]>([]);
-  loading        = signal(false);
-  statsLoading   = signal(false);
-  usersLoading   = signal(false);
-  pdfLoading     = signal(false);
-  isMobile       = signal(false);
+  loading            = signal(false);
+  statsLoading       = signal(false);
+  usersLoading       = signal(false);
+  pdfLoading         = signal(false);
+  isMobile           = signal(false);
 
-  // ── Trip form ─────────────────────────────────────────────────────────────
+  // ── Trip form ────────────────────────────────────────────────────────────
   tripForm: Partial<Trip> = this.defaultTripForm();
   editingId: string | null = null;
 
-  // ── User form ─────────────────────────────────────────────────────────────
+  // Controls whether Travel Date is a text label or a real date
+  travelDateMode: 'date' | 'in_uae' | 'in_india' = 'date';
+
+  // ── User form ────────────────────────────────────────────────────────────
   userForm: Partial<User> = this.defaultUserForm();
   editingUserId: string | null = null;
   showUserForm = false;
 
-  // ── Filters ───────────────────────────────────────────────────────────────
-  listFilter: any = { direction: '', year: '', month: '', username: '' };
-  historyYear     = 'ALL';
+  // ── Filters ──────────────────────────────────────────────────────────────
+  listFilter: any    = { year: '', month: '', username: '' };
+  historyYear        = 'ALL';
   historyView: 'yearly' | 'monthly' = 'yearly';
-  historyUsername = '';  // set after users load
-
-  pdfFilter: any = { username: '', direction: '', year: '', startDate: '', endDate: '' };
-  showPdfPanel   = false;
+  historyUsername    = '';
+  pdfFilter: any     = { username: '', year: '', startDate: '', endDate: '' };
+  showPdfPanel       = false;
 
   months = [
-    { value: '1',  label: 'January'   }, { value: '2',  label: 'February' },
-    { value: '3',  label: 'March'     }, { value: '4',  label: 'April'    },
-    { value: '5',  label: 'May'       }, { value: '6',  label: 'June'     },
-    { value: '7',  label: 'July'      }, { value: '8',  label: 'August'   },
-    { value: '9',  label: 'September' }, { value: '10', label: 'October'  },
-    { value: '11', label: 'November'  }, { value: '12', label: 'December' },
+    { value: '1',  label: 'January'   }, { value: '2',  label: 'February'  },
+    { value: '3',  label: 'March'     }, { value: '4',  label: 'April'     },
+    { value: '5',  label: 'May'       }, { value: '6',  label: 'June'      },
+    { value: '7',  label: 'July'      }, { value: '8',  label: 'August'    },
+    { value: '9',  label: 'September' }, { value: '10', label: 'October'   },
+    { value: '11', label: 'November'  }, { value: '12', label: 'December'  },
   ];
   travelClasses = ['Economy', 'Premium Economy', 'Business', 'First'];
-  currencies    = ['AED', 'INR', 'USD', 'GBP', 'EUR'];
-  nationalities = ['Indian', 'Emirati', 'Pakistani', 'Filipino', 'British', 'American', 'Other'];
   currentYear   = new Date().getFullYear();
 
   constructor(
@@ -81,12 +81,20 @@ export class AppComponent implements OnInit {
   // ── Default forms ─────────────────────────────────────────────────────────
   private defaultTripForm(): Partial<Trip> {
     return {
-      username: '', designation: '',
-      direction: 'UAE_TO_INDIA', departureDate: '', returnDate: '',
-      issueDate: '', airline: '', travelClass: '', sector: '',
-      fare: null, fareCurrency: 'AED', notes: '',
-      arrivalTime:   null,
-departureTime: null,
+      username:       '',
+      designation:    '',
+      issueDate:      '',
+      airline:        '',
+      sector:         '',
+      travelClass:    '',
+      travelDateText: null,
+      travelDate:     '',
+      returnDate:     '',
+      exitTime:       '',
+      entryTime:      '',
+      inIndiaDays:    0,
+      inUAEDays:      0,
+      notes:          '',
     };
   }
 
@@ -102,6 +110,26 @@ departureTime: null,
     if (tab === 'users')   this.loadUsers();
   }
 
+  // ── Travel date mode ──────────────────────────────────────────────────────
+  setTravelDateMode(mode: 'date' | 'in_uae' | 'in_india'): void {
+    this.travelDateMode = mode;
+    if (mode === 'in_uae') {
+      this.tripForm.travelDateText = 'In UAE';
+      this.tripForm.travelDate     = '';
+    } else if (mode === 'in_india') {
+      this.tripForm.travelDateText = 'In India';
+      this.tripForm.travelDate     = '';
+    } else {
+      this.tripForm.travelDateText = null;
+    }
+  }
+
+  getTravelDateDisplay(trip: Trip): string {
+    if (trip.travelDateText) return trip.travelDateText;
+    if (trip.travelDate)     return this.formatDate(trip.travelDate);
+    return '—';
+  }
+
   // ── Users ─────────────────────────────────────────────────────────────────
   loadUsers(): Promise<void> {
     this.usersLoading.set(true);
@@ -111,12 +139,10 @@ departureTime: null,
           this.users.set(res.data);
           const names = res.data.map(u => u.fullName || `${u.firstName} ${u.lastName}`);
           this.availableUsernames.set(names);
-          // Set defaults for history and pdf filter to first user
           if (!this.historyUsername && names.length) {
-            this.historyUsername = names[0];
+            this.historyUsername    = names[0];
             this.pdfFilter.username = names[0];
           }
-          // Set default for trip form
           if (!this.tripForm.username && names.length) {
             this.onUserSelect(res.data[0]);
           }
@@ -150,7 +176,11 @@ departureTime: null,
     setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
   }
 
-  cancelUserForm(): void { this.showUserForm = false; this.editingUserId = null; this.userForm = this.defaultUserForm(); }
+  cancelUserForm(): void {
+    this.showUserForm  = false;
+    this.editingUserId = null;
+    this.userForm      = this.defaultUserForm();
+  }
 
   async submitUser(): Promise<void> {
     if (!this.userForm.firstName?.trim() || !this.userForm.lastName?.trim() || !this.userForm.designation?.trim()) {
@@ -178,7 +208,7 @@ departureTime: null,
   async deleteUser(user: User): Promise<void> {
     const result = await Swal.fire({
       icon: 'warning', title: 'Delete user?',
-      html: `<p>Delete <strong>${user.fullName || user.firstName + ' ' + user.lastName}</strong>? Their trip records will remain.</p>`,
+      html: `<p>Delete <strong>${user.fullName || user.firstName + ' ' + user.lastName}</strong>? Their records will remain.</p>`,
       showCancelButton: true, confirmButtonText: 'Yes, delete',
       cancelButtonText: 'Cancel', confirmButtonColor: '#e74c3c',
     });
@@ -194,10 +224,9 @@ departureTime: null,
   loadTrips(): void {
     this.loading.set(true);
     const filter: any = {};
-    if (this.listFilter.direction) filter.direction = this.listFilter.direction;
-    if (this.listFilter.year)      filter.year      = this.listFilter.year;
+    if (this.listFilter.year)              filter.year     = this.listFilter.year;
     if (this.listFilter.month && this.listFilter.year) filter.month = this.listFilter.month;
-    if (this.listFilter.username?.trim()) filter.username = this.listFilter.username.trim();
+    if (this.listFilter.username?.trim())  filter.username = this.listFilter.username.trim();
     this.tripService.getTrips(filter).subscribe({
       next: (res) => { this.trips.set(res.data); this.loading.set(false); },
       error: () => { this.loading.set(false); Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to load trips', timer: 2000 }); },
@@ -206,11 +235,11 @@ departureTime: null,
 
   loadStats(): void {
     this.statsLoading.set(true);
-    const year     = this.historyYear === 'ALL' ? undefined : this.historyYear;
+    const year     = this.historyYear     === 'ALL' ? undefined : this.historyYear;
     const username = this.historyUsername === 'ALL' ? undefined : this.historyUsername;
     this.tripService.getStats(year, username).subscribe({
       next: (res) => { this.stats.set(res.data); this.statsLoading.set(false); },
-      error: () => { this.statsLoading.set(false); },
+      error: () => this.statsLoading.set(false),
     });
   }
 
@@ -224,450 +253,451 @@ departureTime: null,
   }
 
   resetForm(): void {
-    this.tripForm = this.defaultTripForm();
-    // Re-apply first user default
+    this.tripForm       = this.defaultTripForm();
+    this.travelDateMode = 'date';
     if (this.users().length) this.onUserSelect(this.users()[0]);
     this.editingId = null;
   }
 
   async submitTrip(): Promise<void> {
     if (!this.tripForm.username?.trim()) {
-      Swal.fire({ icon: 'warning', title: 'Select a person', text: 'Please select a traveller from the dropdown.' });
+      Swal.fire({ icon: 'warning', title: 'Select a person', text: 'Please select a traveller.' });
       return;
     }
-    if (!this.tripForm.departureDate || !this.tripForm.returnDate) {
-      Swal.fire({ icon: 'warning', title: 'Missing dates', text: 'Please select departure and return dates.' });
+
+    // returnDate is the most required field
+    if (!this.tripForm.returnDate) {
+      Swal.fire({ icon: 'warning', title: 'Missing return date', text: 'Return date is required.' });
       return;
     }
-    if (new Date(this.tripForm.returnDate as string) < new Date(this.tripForm.departureDate as string)) {
-      Swal.fire({ icon: 'warning', title: 'Invalid dates', text: 'Return date cannot be before departure date.' });
-      return;
-    }
+
     this.loading.set(true);
-    const fareVal = this.tripForm.fare;
+
     const payload: any = {
-      username:      this.tripForm.username,
-      designation:   this.tripForm.designation || '',
-      direction:     this.tripForm.direction,
-      departureDate: this.tripForm.departureDate,
-      returnDate:    this.tripForm.returnDate,
-      notes:         this.tripForm.notes || '',
-      issueDate:     this.tripForm.issueDate && (this.tripForm.issueDate as string).trim() ? this.tripForm.issueDate : null,
-      airline:       this.tripForm.airline       || '',
-      travelClass:   this.tripForm.travelClass   || '',
-      sector:        this.tripForm.sector        || '',
-      fare:          (fareVal !== null && fareVal !== undefined && (fareVal as any) !== '') ? Number(fareVal) : null,
-      fareCurrency:  this.tripForm.fareCurrency  || 'AED',
-      arrivalTime:   this.tripForm.direction === 'UAE_TO_INDIA' ? (this.tripForm.arrivalTime || null) : null,
-departureTime: this.tripForm.direction === 'INDIA_TO_UAE' ? (this.tripForm.departureTime || null) : null,
+      username:       this.tripForm.username,
+      designation:    this.tripForm.designation || '',
+      issueDate:      this.tripForm.issueDate   || null,
+      airline:        this.tripForm.airline     || '',
+      sector:         this.tripForm.sector      || '',
+      travelClass:    this.tripForm.travelClass || '',
+      returnDate:     this.tripForm.returnDate,
+      exitTime:       this.tripForm.exitTime    || '',
+      entryTime:      this.tripForm.entryTime   || '',
+      inIndiaDays:    Number(this.tripForm.inIndiaDays) || 0,
+      inUAEDays:      Number(this.tripForm.inUAEDays)   || 0,
+      notes:          this.tripForm.notes       || '',
     };
+
+    // Travel date
+    if (this.travelDateMode === 'in_uae') {
+      payload.travelDateText = 'In UAE';
+      payload.travelDate     = null;
+    } else if (this.travelDateMode === 'in_india') {
+      payload.travelDateText = 'In India';
+      payload.travelDate     = null;
+    } else {
+      payload.travelDateText = null;
+      payload.travelDate     = this.tripForm.travelDate || null;
+    }
+
     const op = this.editingId
       ? this.tripService.updateTrip(this.editingId, payload)
       : this.tripService.createTrip(payload);
+
     op.subscribe({
       next: () => {
         this.loading.set(false);
-        Swal.fire({ icon: 'success', title: this.editingId ? 'Updated!' : 'Trip Added!', timer: 1800, showConfirmButton: false });
-        this.resetForm(); this.loadTrips(); this.loadYears();
+        Swal.fire({ icon: 'success', title: this.editingId ? 'Updated!' : 'Record Added!', timer: 1800, showConfirmButton: false });
+        this.resetForm();
+        this.loadTrips();
+        this.loadYears();
         if (this.editingId) this.activeTab.set('list');
       },
       error: (err) => {
         this.loading.set(false);
-        Swal.fire({ icon: 'error', title: 'Error', text: err.error?.error || 'Failed to save trip' });
+        Swal.fire({ icon: 'error', title: 'Error', text: err.error?.error || 'Failed to save record' });
       },
     });
   }
 
   editTrip(trip: Trip): void {
     this.editingId = trip._id!;
+
+    // Determine travel date mode
+    if (trip.travelDateText === 'In UAE') {
+      this.travelDateMode = 'in_uae';
+    } else if (trip.travelDateText === 'In India') {
+      this.travelDateMode = 'in_india';
+    } else {
+      this.travelDateMode = 'date';
+    }
+
     this.tripForm = {
-      username:      trip.username,
-      designation:   trip.designation,
-      direction:     trip.direction,
-      departureDate: this.formatDateForInput(trip.departureDate),
-      returnDate:    this.formatDateForInput(trip.returnDate),
-      issueDate:     trip.issueDate ? this.formatDateForInput(trip.issueDate) : '',
-      airline:       trip.airline      || '',
-      travelClass:   trip.travelClass  || '',
-      sector:        trip.sector       || '',
-      fare:          trip.fare !== null && trip.fare !== undefined ? Number(trip.fare) : null,
-      fareCurrency:  trip.fareCurrency || 'AED',
-      notes:         trip.notes        || '',
-      arrivalTime:   trip.arrivalTime   || null,
-departureTime: trip.departureTime || null,
+      username:       trip.username,
+      designation:    trip.designation,
+      issueDate:      trip.issueDate  ? this.formatDateForInput(trip.issueDate)  : '',
+      airline:        trip.airline    || '',
+      sector:         trip.sector     || '',
+      travelClass:    trip.travelClass || '',
+      travelDateText: trip.travelDateText || null,
+      travelDate:     trip.travelDate ? this.formatDateForInput(trip.travelDate) : '',
+      returnDate:     trip.returnDate ? this.formatDateForInput(trip.returnDate) : '',
+      exitTime:       trip.exitTime   || '',
+      entryTime:      trip.entryTime  || '',
+      inIndiaDays:    trip.inIndiaDays ?? 0,
+      inUAEDays:      trip.inUAEDays  ?? 0,
+      notes:          trip.notes      || '',
     };
+
     this.activeTab.set('add');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   async deleteTrip(trip: Trip): Promise<void> {
     const result = await Swal.fire({
-      icon: 'warning', title: 'Delete trip?',
-      html: `<p>Delete trip from <strong>${this.formatDate(trip.departureDate)}</strong> to <strong>${this.formatDate(trip.returnDate)}</strong>?</p>`,
+      icon: 'warning', title: 'Delete record?',
+      html: `<p>Delete record for <strong>${trip.username}</strong> — ${trip.sector || 'no sector'}?</p>`,
       showCancelButton: true, confirmButtonText: 'Yes, delete',
       cancelButtonText: 'Cancel', confirmButtonColor: '#e74c3c',
     });
     if (result.isConfirmed) {
       this.tripService.deleteTrip(trip._id!).subscribe({
-        next: () => { Swal.fire({ icon: 'success', title: 'Deleted!', timer: 1500, showConfirmButton: false }); this.loadTrips(); this.loadStats(); },
-        error: () => Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to delete trip' }),
+        next: () => {
+          Swal.fire({ icon: 'success', title: 'Deleted!', timer: 1500, showConfirmButton: false });
+          this.loadTrips();
+          this.loadStats();
+        },
+        error: () => Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to delete record' }),
       });
     }
   }
 
-  applyListFilter(): void  { this.loadTrips(); }
-  clearListFilter(): void  { this.listFilter = { direction: '', year: '', month: '', username: '' }; this.loadTrips(); }
+  applyListFilter():    void { this.loadTrips(); }
+  clearListFilter():    void { this.listFilter = { year: '', month: '', username: '' }; this.loadTrips(); }
   applyHistoryFilter(): void { this.loadStats(); }
-  togglePdfPanel(): void   { this.showPdfPanel = !this.showPdfPanel; }
+  togglePdfPanel():     void { this.showPdfPanel = !this.showPdfPanel; }
 
   // ── PDF Generation ────────────────────────────────────────────────────────
-generatePdfReport(): void {
-  if (this.pdfLoading()) return; // 🔥 prevent double click
+  generatePdfReport(): void {
+    if (this.pdfLoading()) return;
+    this.pdfLoading.set(true);
 
-  this.pdfLoading.set(true);
+    const filter: any = {};
+    if (this.pdfFilter.username)  filter.username  = this.pdfFilter.username;
+    if (this.pdfFilter.year)      filter.year       = this.pdfFilter.year;
+    if (this.pdfFilter.startDate) filter.startDate  = this.pdfFilter.startDate;
+    if (this.pdfFilter.endDate)   filter.endDate    = this.pdfFilter.endDate;
 
-  const filter: any = {};
-
-  if (this.pdfFilter.username) filter.username = this.pdfFilter.username;
-  if (this.pdfFilter.direction) filter.direction = this.pdfFilter.direction;
-  if (this.pdfFilter.year) filter.year = this.pdfFilter.year;
-  if (this.pdfFilter.startDate) filter.startDate = this.pdfFilter.startDate;
-  if (this.pdfFilter.endDate) filter.endDate = this.pdfFilter.endDate;
-
-  this.tripService.getTrips(filter).subscribe({
-    next: (res) => {
-      if (!res.data.length) {
-        this.pdfLoading.set(false); // ✅ IMPORTANT
-        return;
-      }
-
-      this.loadJsPDF()
-        .then(jsPDF => {
-          this.buildTravelSummaryPdf(res.data, jsPDF);
-        })
-        .catch(() => {
-          console.error('PDF load failed');
-        })
-        .finally(() => {
-          this.pdfLoading.set(false); // ✅ ALWAYS RESET
-        });
-    },
-
-    error: () => {
-      this.pdfLoading.set(false); // ✅ IMPORTANT
-    }
-  });
-}
-
-private loadJsPDF(): Promise<any> {
-  const win = window as any;
-
-  // ✅ Already loaded → reuse
-  if (win.jspdf?.jsPDF) {
-    return Promise.resolve(win.jspdf.jsPDF);
-  }
-
-  return new Promise((resolve, reject) => {
-    let script = document.getElementById('jspdf-script') as HTMLScriptElement;
-
-    if (script) {
-      script.onload = () => resolve(win.jspdf.jsPDF);
-      return;
-    }
-
-    script = document.createElement('script');
-    script.id = 'jspdf-script';
-    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-    script.async = true;
-
-    script.onload = () => resolve(win.jspdf.jsPDF);
-    script.onerror = () => reject();
-
-    document.head.appendChild(script);
-  });
-}
-
-private buildTravelSummaryPdf(trips: Trip[], jsPDFCtor: any): void {
-  const doc = new jsPDFCtor({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-
-  const PW = 210, PH = 297, ML = 8, MR = 8, MT = 12, TW = PW - ML - MR;
-
-  type RGB = [number, number, number];
-  const BLACK: RGB = [0, 0, 0];
-  const NAVY: RGB = [26, 51, 102];
-  const YELBG: RGB = [255, 235, 156];
-  const WHITE: RGB = [255, 255, 255];
-  const TOTALBG: RGB = [189, 215, 238];
-  const GRIDC: RGB = [150, 150, 150];
-
-  const sorted = [...trips].sort(
-    (a, b) => new Date(a.departureDate as string).getTime() - new Date(b.departureDate as string).getTime()
-  );
-
-  const personName = this.pdfFilter.username?.trim() || '';
-
-  let dateRangeStr = 'All Dates';
-  if (this.pdfFilter.startDate && this.pdfFilter.endDate)
-    dateRangeStr = `${this.formatDateOrdinal(this.pdfFilter.startDate)} to ${this.formatDateOrdinal(this.pdfFilter.endDate)}`;
-  else if (this.pdfFilter.year)
-    dateRangeStr = `1st January ${this.pdfFilter.year} to 31st December ${this.pdfFilter.year}`;
-  else if (sorted.length)
-    dateRangeStr = `${this.formatDateOrdinal(sorted[0].departureDate as string)} to ${this.formatDateOrdinal(sorted[sorted.length - 1].returnDate as string)}`;
-
-  const reportTitle = `Travel Summary ${dateRangeStr}${personName ? ' (' + personName + ')' : ''}`;
-
-  const cols = [
-    { h: 'No.', w: 8, align: 'center' as const },
-    { h: 'Issue Date', w: 20, align: 'center' as const },
-    { h: 'Name', w: 31, align: 'left' as const },
-    { h: 'Airlines', w: 19, align: 'left' as const },
-    { h: 'Sector', w: 22, align: 'center' as const },
-    { h: 'Class', w: 16, align: 'center' as const },
-    { h: 'Travel Date', w: 20, align: 'center' as const },
-    { h: 'Return Date', w: 20, align: 'center' as const },
-    { h: 'In India', w: 11, align: 'center' as const },
-    { h: 'In UAE/\nAbroad', w: 13, align: 'center' as const },
-    { h: 'Remarks', w: 14, align: 'left' as const },
-  ];
-
-  const ROW_H = 7, HEAD_H = 9, GRP_H = 6.5;
-
-  let curY = MT;
-
-  const colX = (i: number) => {
-    let x = ML;
-    for (let j = 0; j < i; j++) x += cols[j].w;
-    return x;
-  };
-
-  const cellText = (text: string, ci: number, y: number, rh: number, bold = false, color: RGB = BLACK) => {
-    const x = colX(ci), cw = cols[ci].w, al = cols[ci].align;
-    doc.setFont('helvetica', bold ? 'bold' : 'normal');
-    doc.setFontSize(6.5);
-    doc.setTextColor(...color);
-    const tx = al === 'center' ? x + cw / 2 : x + 1;
-    doc.text(String(text), tx, y + rh / 2 + 2.2, { align: al as any, maxWidth: cw - 1.5 });
-  };
-
-  const drawTitle = () => {
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(10);
-    doc.setTextColor(...NAVY);
-    doc.text(reportTitle, PW / 2, curY + 5, { align: 'center' });
-    curY += 12;
-  };
-
-  const drawColHeaders = () => {
-    doc.setFillColor(...NAVY);
-    doc.rect(ML, curY, TW, HEAD_H, 'F');
-
-    for (let i = 0; i < cols.length; i++) {
-      const x = colX(i), cw = cols[i].w;
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(6);
-      doc.setTextColor(255, 255, 255);
-
-      doc.text(cols[i].h, x + cw / 2, curY + HEAD_H / 2 + 1.5, {
-        align: 'center',
-        maxWidth: cw - 1
-      });
-
-      if (i > 0) doc.line(x, curY, x, curY + HEAD_H);
-    }
-
-    doc.setDrawColor(...GRIDC);
-    doc.rect(ML, curY, TW, HEAD_H);
-    curY += HEAD_H;
-  };
-
-  const drawGroupHeader = (label: string) => {
-    doc.setFillColor(...YELBG);
-    doc.rect(ML, curY, TW, GRP_H, 'F');
-
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(6.8);
-    doc.setTextColor(...NAVY);
-    doc.text(label, ML + TW / 2, curY + GRP_H / 2 + 1.8, { align: 'center' });
-
-    doc.rect(ML, curY, TW, GRP_H);
-    curY += GRP_H;
-  };
-
-  const drawDataRow = (trip: Trip, rowNum: number, inIndia: number, inUAE: number) => {
-    doc.setFillColor(...WHITE);
-    doc.rect(ML, curY, TW, ROW_H, 'F');
-
-    const ry = curY;
-
-    cellText(rowNum.toString(), 0, ry, ROW_H);
-    cellText(trip.issueDate ? this.formatDateShort(trip.issueDate) : '', 1, ry, ROW_H);
-    cellText(trip.username, 2, ry, ROW_H);
-    cellText(trip.airline || '', 3, ry, ROW_H);
-    cellText(trip.sector || '', 4, ry, ROW_H);
-    cellText(trip.travelClass || '', 5, ry, ROW_H);
-    cellText(this.formatDateShort(trip.departureDate), 6, ry, ROW_H);
-    cellText(this.formatDateShort(trip.returnDate), 7, ry, ROW_H);
-
-    cellText(inIndia ? inIndia.toString() : '', 8, ry, ROW_H, true, [0, 100, 0]);
-    cellText(inUAE ? inUAE.toString() : '', 9, ry, ROW_H, true, [26, 86, 180]);
-
-    cellText(trip.notes || '', 10, ry, ROW_H);
-
-    doc.setDrawColor(...GRIDC);
-    doc.rect(ML, ry, TW, ROW_H);
-
-    curY += ROW_H;
-  };
-
-  const drawTotalRow = (india: number, uae: number) => {
-    const total = india + uae;
-
-    doc.setFillColor(...TOTALBG);
-    doc.rect(ML, curY, TW, ROW_H, 'F');
-
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(...NAVY);
-
-    doc.text('Total Days', ML + 50, curY + ROW_H / 2 + 2, { align: 'center' });
-
-    cellText(india.toString(), 8, curY, ROW_H, true, [0, 100, 0]);
-    cellText(uae.toString(), 9, curY, ROW_H, true, [26, 86, 180]);
-    cellText(total.toString(), 10, curY, ROW_H, true);
-
-    doc.rect(ML, curY, TW, ROW_H);
-    curY += ROW_H;
-  };
-
-  // ✅ DRAW START
-  drawTitle();
-  drawColHeaders();
-  drawGroupHeader('Trips');
-
-  const MS_DAY = 86400000;
-
-  let totalIndia = 0;
-  let totalUAE = 0;
-  let rowNum = 1;
-
-  for (let i = 0; i < sorted.length; i++) {
-    const trip = sorted[i];
-    const days = trip.daysCount || 0;
-
-    let inIndia = 0;
-    let inUAE = 0;
-
-    if (trip.direction === 'UAE_TO_INDIA') {
-      inIndia = days;
-
-      if (i < sorted.length - 1) {
-        const nextTrip = sorted[i + 1];
-
-        const gapMs =
-          new Date(nextTrip.departureDate as string).getTime() -
-          new Date(trip.returnDate as string).getTime() -
-          MS_DAY;
-
-        if (gapMs > 0) {
-          inUAE += Math.round(gapMs / MS_DAY);
+    this.tripService.getTrips(filter).subscribe({
+      next: (res) => {
+        if (!res.data.length) {
+          Swal.fire({ icon: 'info', title: 'No data', text: 'No records found for selected filters.', timer: 2000 });
+          this.pdfLoading.set(false);
+          return;
         }
-      }
-    }
-
-    if (trip.direction === 'INDIA_TO_UAE') {
-      inUAE += days;
-    }
-
-    totalIndia += inIndia;
-    totalUAE += inUAE;
-
-    drawDataRow(trip, rowNum++, inIndia, inUAE);
+        this.loadJsPDF()
+          .then(jsPDF => this.buildTravelSummaryPdf(res.data, jsPDF))
+          .catch(() => Swal.fire({ icon: 'error', title: 'PDF Error', text: 'Failed to load PDF library.' }))
+          .finally(() => this.pdfLoading.set(false));
+      },
+      error: () => this.pdfLoading.set(false),
+    });
   }
 
-  drawTotalRow(totalIndia, totalUAE);
+  private loadJsPDF(): Promise<any> {
+    const win = window as any;
+    if (win.jspdf?.jsPDF) return Promise.resolve(win.jspdf.jsPDF);
+    return new Promise((resolve, reject) => {
+      let script = document.getElementById('jspdf-script') as HTMLScriptElement;
+      if (script) { script.onload = () => resolve(win.jspdf.jsPDF); return; }
+      script = document.createElement('script');
+      script.id  = 'jspdf-script';
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+      script.async  = true;
+      script.onload  = () => resolve(win.jspdf.jsPDF);
+      script.onerror = () => reject();
+      document.head.appendChild(script);
+    });
+  }
 
-const user = this.pdfFilter.username?.trim() || 'All Users';
-const year = this.pdfFilter.year || 'All';
-const from = this.pdfFilter.startDate ? this.formatDateShort(this.pdfFilter.startDate) : '';
-const to   = this.pdfFilter.endDate ? this.formatDateShort(this.pdfFilter.endDate) : '';
+  private buildTravelSummaryPdf(trips: Trip[], jsPDFCtor: any): void {
+    const doc = new jsPDFCtor({ orientation: 'landscape', unit: 'mm', format: 'a4' });
 
-// clean filename (no spaces issues)
-const safeUser = user.replace(/\s+/g, '_');
+    // A4 landscape: 297 × 210 mm
+    const PW = 297, PH = 210, ML = 6, MR = 6, MT = 10;
+    const TW = PW - ML - MR;
 
-let fileName = `Travel_Summary_of_${safeUser}`;
+    type RGB = [number, number, number];
+    const NAVY:    RGB = [26,  51, 102];
+    const YELBG:   RGB = [255, 235, 156];
+    const WHITE:   RGB = [255, 255, 255];
+    const TOTALBG: RGB = [189, 215, 238];
+    const GRIDC:   RGB = [180, 180, 180];
+    const BLACK:   RGB = [0,   0,   0];
+    const GREEN:   RGB = [0,   100, 0];
+    const BLUE:    RGB = [26,  86,  180];
 
-if (this.pdfFilter.year) {
-  fileName += `_Year_${year}`;
-}
+    // Sort by returnDate ascending
+    const sorted = [...trips].sort((a, b) => {
+      const da = a.returnDate ? new Date(a.returnDate as string).getTime() : 0;
+      const db = b.returnDate ? new Date(b.returnDate as string).getTime() : 0;
+      return da - db;
+    });
 
-if (from && to) {
-  fileName += `_${from}_to_${to}`;
-}
+    const personName  = this.pdfFilter.username?.trim() || '';
+    const yearLabel   = this.pdfFilter.year || '';
 
-fileName += '.pdf';
+    let dateRangeStr = 'All Dates';
+    if (this.pdfFilter.startDate && this.pdfFilter.endDate) {
+      dateRangeStr = `${this.formatDateOrdinal(this.pdfFilter.startDate)} to ${this.formatDateOrdinal(this.pdfFilter.endDate)}`;
+    } else if (yearLabel) {
+      // Financial year display: Apr 1 to Mar 31
+      dateRangeStr = `1st April ${yearLabel} to 31st March ${Number(yearLabel) + 1}`;
+    } else if (sorted.length) {
+      const first = sorted[0].returnDate || sorted[0].travelDate;
+      const last  = sorted[sorted.length - 1].returnDate || sorted[sorted.length - 1].travelDate;
+      if (first && last) dateRangeStr = `${this.formatDateOrdinal(first as string)} to ${this.formatDateOrdinal(last as string)}`;
+    }
 
-doc.save(fileName);
-}
+    const reportTitle = `Travel Summary ${dateRangeStr}${personName ? ' (' + personName + ')' : ''}`;
+
+    // ── Column definitions ───────────────────────────────────────────────────
+    //  No. | Issue Date | Name | Airlines | Sector | Class | Travel Date | Return Date | In India | In UAE/Abroad | EXIT TIME | ENTRY TIME | Remarks
+    const cols = [
+      { h: 'No.',          w: 8,  align: 'center' as const },
+      { h: 'Issue Date',   w: 20, align: 'center' as const },
+      { h: 'Name',         w: 35, align: 'left'   as const },
+      { h: 'Airlines',     w: 20, align: 'left'   as const },
+      { h: 'Sector',       w: 28, align: 'center' as const },
+      { h: 'Class',        w: 18, align: 'center' as const },
+      { h: 'Travel Date',  w: 22, align: 'center' as const },
+      { h: 'Return Date',  w: 22, align: 'center' as const },
+      { h: 'In India',     w: 14, align: 'center' as const },
+      { h: 'In\nUAE/Abroad', w: 16, align: 'center' as const },
+      { h: 'EXIT TIME',    w: 20, align: 'center' as const },
+      { h: 'ENTRY TIME',   w: 20, align: 'center' as const },
+      { h: 'Remarks',      w: 14, align: 'left'   as const },
+    ];
+
+    const ROW_H  = 7;
+    const HEAD_H = 9;
+    const GRP_H  = 6;
+    let curY = MT;
+
+    const colX = (i: number) => {
+      let x = ML;
+      for (let j = 0; j < i; j++) x += cols[j].w;
+      return x;
+    };
+
+    const cellText = (text: string, ci: number, y: number, rh: number, bold = false, color: RGB = BLACK) => {
+      const x = colX(ci), cw = cols[ci].w, al = cols[ci].align;
+      doc.setFont('helvetica', bold ? 'bold' : 'normal');
+      doc.setFontSize(6.5);
+      doc.setTextColor(...color);
+      const tx = al === 'center' ? x + cw / 2 : x + 1.5;
+      doc.text(String(text ?? ''), tx, y + rh / 2 + 2.2, { align: al as any, maxWidth: cw - 2 });
+    };
+
+    const drawTitle = () => {
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.setTextColor(...NAVY);
+      doc.text(reportTitle, PW / 2, curY + 5, { align: 'center' });
+      curY += 12;
+    };
+
+    const drawColHeaders = () => {
+      doc.setFillColor(...NAVY);
+      doc.rect(ML, curY, TW, HEAD_H, 'F');
+      for (let i = 0; i < cols.length; i++) {
+        const x = colX(i), cw = cols[i].w;
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(6);
+        doc.setTextColor(255, 255, 255);
+        doc.text(cols[i].h, x + cw / 2, curY + HEAD_H / 2 + 1.5, { align: 'center', maxWidth: cw - 1 });
+        if (i > 0) { doc.setDrawColor(...GRIDC); doc.line(x, curY, x, curY + HEAD_H); }
+      }
+      doc.setDrawColor(...GRIDC);
+      doc.rect(ML, curY, TW, HEAD_H);
+      curY += HEAD_H;
+    };
+
+    const drawGroupHeader = (label: string) => {
+      doc.setFillColor(...YELBG);
+      doc.rect(ML, curY, TW, GRP_H, 'F');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7);
+      doc.setTextColor(...NAVY);
+      doc.text(label, ML + TW / 2, curY + GRP_H / 2 + 1.8, { align: 'center' });
+      doc.setDrawColor(...GRIDC);
+      doc.rect(ML, curY, TW, GRP_H);
+      curY += GRP_H;
+    };
+
+    const drawDataRow = (trip: Trip, rowNum: number) => {
+      // Check page overflow
+      if (curY + ROW_H > PH - 12) {
+        doc.addPage();
+        curY = MT;
+        drawColHeaders();
+      }
+
+      doc.setFillColor(...WHITE);
+      doc.rect(ML, curY, TW, ROW_H, 'F');
+      const ry = curY;
+
+      cellText(rowNum.toString(),                                 0, ry, ROW_H);
+      cellText(trip.issueDate ? this.formatDateShort(trip.issueDate) : '', 1, ry, ROW_H);
+      cellText(trip.username,                                     2, ry, ROW_H);
+      cellText(trip.airline || '',                                3, ry, ROW_H);
+      cellText(trip.sector  || '',                                4, ry, ROW_H);
+      cellText(trip.travelClass || '',                            5, ry, ROW_H);
+      cellText(this.getTravelDateDisplayForPdf(trip),             6, ry, ROW_H);
+      cellText(trip.returnDate ? this.formatDateShort(trip.returnDate) : '', 7, ry, ROW_H);
+
+      // In India — green, bold if non-zero
+      const india = trip.inIndiaDays || 0;
+      const uae   = trip.inUAEDays   || 0;
+      cellText(india ? india.toString() : '', 8, ry, ROW_H, india > 0, india > 0 ? GREEN : BLACK);
+      cellText(uae   ? uae.toString()   : '', 9, ry, ROW_H, uae   > 0, uae   > 0 ? BLUE  : BLACK);
+
+      cellText(trip.exitTime  || '', 10, ry, ROW_H);
+      cellText(trip.entryTime || '', 11, ry, ROW_H);
+      cellText(trip.notes     || '', 12, ry, ROW_H);
+
+      doc.setDrawColor(...GRIDC);
+      doc.rect(ML, ry, TW, ROW_H);
+      curY += ROW_H;
+    };
+
+    const drawTotalRow = (totalIndia: number, totalUAE: number) => {
+      if (curY + ROW_H > PH - 10) { doc.addPage(); curY = MT; }
+
+      doc.setFillColor(...TOTALBG);
+      doc.rect(ML, curY, TW, ROW_H, 'F');
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7);
+      doc.setTextColor(...NAVY);
+      doc.text('Total Days', ML + 90, curY + ROW_H / 2 + 2.2, { align: 'center' });
+
+      cellText(totalIndia.toString(),                8, curY, ROW_H, true, GREEN);
+      cellText(totalUAE.toString(),                  9, curY, ROW_H, true, BLUE);
+      cellText((totalIndia + totalUAE).toString(),  12, curY, ROW_H, true);
+
+      doc.setDrawColor(...GRIDC);
+      doc.rect(ML, curY, TW, ROW_H);
+      curY += ROW_H;
+    };
+
+    // ── Draw ─────────────────────────────────────────────────────────────────
+    drawTitle();
+    drawColHeaders();
+    drawGroupHeader(yearLabel
+      ? `1st April ${yearLabel} to 31st March ${Number(yearLabel) + 1}`
+      : 'All Records');
+
+    let totalIndia = 0;
+    let totalUAE   = 0;
+
+    sorted.forEach((trip, i) => {
+      totalIndia += trip.inIndiaDays || 0;
+      totalUAE   += trip.inUAEDays   || 0;
+      drawDataRow(trip, i + 1);
+    });
+
+    drawTotalRow(totalIndia, totalUAE);
+
+    // ── Save ─────────────────────────────────────────────────────────────────
+    const safeUser = (this.pdfFilter.username || 'All_Users').replace(/\s+/g, '_');
+    let fileName   = `Travel_Summary_${safeUser}`;
+    if (yearLabel) fileName += `_FY${yearLabel}`;
+    if (this.pdfFilter.startDate && this.pdfFilter.endDate) {
+      fileName += `_${this.pdfFilter.startDate}_to_${this.pdfFilter.endDate}`;
+    }
+    fileName += '.pdf';
+    doc.save(fileName);
+  }
+
+  private getTravelDateDisplayForPdf(trip: Trip): string {
+    if (trip.travelDateText) return trip.travelDateText;
+    if (trip.travelDate)     return this.formatDateShort(trip.travelDate);
+    return '';
+  }
+
+  // ── NRI Warning ───────────────────────────────────────────────────────────
+  get nriWarning(): string | null {
+    const s = this.stats();
+    if (!s) return null;
+    // Check current financial year India days
+    const now  = new Date();
+    const fyStart = now.getMonth() >= 3 ? now.getFullYear() : now.getFullYear() - 1;
+    // Find from monthly data
+    const fyMonths = [
+      ...Array.from({ length: 9 }, (_, i) => `${fyStart}-${String(i + 4).padStart(2, '0')}`),
+      ...Array.from({ length: 3 }, (_, i) => `${fyStart + 1}-${String(i + 1).padStart(2, '0')}`),
+    ];
+    const fyIndia = (s.monthly || [])
+      .filter(m => fyMonths.includes(m.month))
+      .reduce((sum, m) => sum + m.india, 0);
+    const remaining = 181 - fyIndia;
+    if (fyIndia >= 182) return `⚠️ NRI status at risk! ${fyIndia} days in India in FY ${fyStart}-${fyStart + 1} (limit: 181)`;
+    if (remaining <= 30) return `⚠️ Only ${remaining} more days allowed in India this FY before NRI status is affected`;
+    return null;
+  }
 
   // ── Date helpers ──────────────────────────────────────────────────────────
-  private formatDateOrdinal(d: string|Date): string {
-    if(!d)return'';const dt=new Date(d as string);if(isNaN(dt.getTime()))return String(d);
-    const day=dt.getUTCDate(),suf=day===1||day===21||day===31?'st':day===2||day===22?'nd':day===3||day===23?'rd':'th';
-    const mon=['January','February','March','April','May','June','July','August','September','October','November','December'];
-    return`${day}${suf} ${mon[dt.getUTCMonth()]} ${dt.getUTCFullYear()}`;
-  }
-  private formatDateShort(date:string|Date|null|undefined):string{
-    if(!date)return'';const d=new Date(date as string);if(isNaN(d.getTime()))return'';
-    const mon=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    return`${String(d.getUTCDate()).padStart(2,'0')}-${mon[d.getUTCMonth()]}-${String(d.getUTCFullYear()).slice(-2)}`;
+  private formatDateOrdinal(d: string | Date): string {
+    if (!d) return '';
+    const dt = new Date(d as string);
+    if (isNaN(dt.getTime())) return String(d);
+    const day = dt.getUTCDate();
+    const suf = day === 1 || day === 21 || day === 31 ? 'st'
+              : day === 2 || day === 22              ? 'nd'
+              : day === 3 || day === 23              ? 'rd' : 'th';
+    const mon = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    return `${day}${suf} ${mon[dt.getUTCMonth()]} ${dt.getUTCFullYear()}`;
   }
 
-  formatDate(date:string|Date|null|undefined):string{
-    if(!date)return'';const d=new Date(date as string);if(isNaN(d.getTime()))return'';
-    return`${String(d.getUTCDate()).padStart(2,'0')}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${d.getUTCFullYear()}`;
+  private formatDateShort(date: string | Date | null | undefined): string {
+    if (!date) return '';
+    const d = new Date(date as string);
+    if (isNaN(d.getTime())) return '';
+    const mon = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `${String(d.getUTCDate()).padStart(2, '0')}-${mon[d.getUTCMonth()]}-${String(d.getUTCFullYear()).slice(-2)}`;
   }
-  formatDateForInput(date:string|Date|null|undefined):string{
-    if(!date)return'';const d=new Date(date as string);if(isNaN(d.getTime()))return'';
-    return`${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`;
-  }
-  formatMonth(s:string):string{const[y,m]=s.split('-');return new Date(+y,+m-1,1).toLocaleDateString('en-GB',{month:'long',year:'numeric'});}
 
-  getDirectionLabel(d:string):string{return d==='UAE_TO_INDIA'?'UAE → India':'India → UAE';}
-  getDirectionBadgeClass(d:string):string{return d==='UAE_TO_INDIA'?'badge-india':'badge-uae';}
-  getIndiaPct(india:number,uae:number):number{const t=india+uae;return t?Math.round(india/t*100):0;}
-  getUaePct(india:number,uae:number):number{const t=india+uae;return t?Math.round(uae/t*100):0;}
-  getDurationPreview():number{
-    if(!this.tripForm.departureDate||!this.tripForm.returnDate)return 0;
-    return Math.max(1,Math.round((new Date(this.tripForm.returnDate as string).getTime()-new Date(this.tripForm.departureDate as string).getTime())/86400000)+1);
+  formatDate(date: string | Date | null | undefined): string {
+    if (!date) return '';
+    const d = new Date(date as string);
+    if (isNaN(d.getTime())) return '';
+    return `${String(d.getUTCDate()).padStart(2, '0')}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${d.getUTCFullYear()}`;
   }
-  get yearOptions():number[]{const y:number[]=[];for(let i=this.currentYear;i>=2015;i--)y.push(i);return y;}
+
+  formatDateForInput(date: string | Date | null | undefined): string {
+    if (!date) return '';
+    const d = new Date(date as string);
+    if (isNaN(d.getTime())) return '';
+    return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
+  }
+
+  formatMonth(s: string): string {
+    const [y, m] = s.split('-');
+    return new Date(+y, +m - 1, 1).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+  }
+
+  getIndiaPct(india: number, uae: number): number { const t = india + uae; return t ? Math.round(india / t * 100) : 0; }
+  getUaePct  (india: number, uae: number): number { const t = india + uae; return t ? Math.round(uae   / t * 100) : 0; }
+  getIndiaNriPct(india: number): number { return Math.min(100, india / 182 * 100); }
 
   getUserInitials(user: User): string {
     return `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase();
   }
 
-  // Financial year: April 1 → March 31
-getFinancialYearIndiaDays(year: number): number {
-  const fy = this.stats()?.yearly || [];
-  // FY spans two calendar years — sum April–Dec of `year` + Jan–Mar of `year+1`
-  const monthly = this.stats()?.monthly || [];
-  const fyMonths = [
-    ...Array.from({length: 9}, (_, i) => `${year}-${String(i + 4).padStart(2, '0')}`),   // Apr–Dec
-    ...Array.from({length: 3}, (_, i) => `${year+1}-${String(i + 1).padStart(2, '0')}`), // Jan–Mar
-  ];
-  return monthly
-    .filter(m => fyMonths.includes(m.month))
-    .reduce((sum, m) => sum + m.india, 0);
-}
-
-get nriWarning(): string | null {
-  const currentFYStart = new Date().getMonth() >= 3   // April onwards
-    ? new Date().getFullYear()
-    : new Date().getFullYear() - 1;
-  const days = this.getFinancialYearIndiaDays(currentFYStart);
-  const remaining = 181 - days;  // 182+ = loses NRI status
-  if (days >= 182) return `⚠️ NRI status at risk! ${days} days in India in FY ${currentFYStart}-${currentFYStart+1} (limit: 181)`;
-  if (remaining <= 30) return `⚠️ Only ${remaining} more days allowed in India this FY before NRI status is affected`;
-  return null;
-}
-
+  get yearOptions(): number[] {
+    const y: number[] = [];
+    for (let i = this.currentYear; i >= 2015; i--) y.push(i);
+    return y;
+  }
 }

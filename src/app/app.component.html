@@ -31,11 +31,11 @@
     <div class="tab-nav-inner">
       <button class="tab-btn" [class.active]="activeTab()==='add'" (click)="setTab('add')">
         <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>
-        <span>{{ editingId ? 'Edit Trip' : 'Add Trip' }}</span>
+        <span>{{ editingId ? 'Edit Record' : 'Add Record' }}</span>
       </button>
       <button class="tab-btn" [class.active]="activeTab()==='list'" (click)="setTab('list')">
         <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16"><path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/></svg>
-        <span>All Trips</span>
+        <span>All Records</span>
       </button>
       <button class="tab-btn" [class.active]="activeTab()==='history'" (click)="setTab('history')">
         <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zm6-4a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zm6-3a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/></svg>
@@ -51,33 +51,19 @@
   <!-- ══ MAIN ══════════════════════════════════════════════════ -->
   <main class="main-content">
 
-    <!-- ── ADD / EDIT TRIP ──────────────────────────────────── -->
+    <!-- ── ADD / EDIT RECORD ─────────────────────────────────── -->
     <section *ngIf="activeTab()==='add'" class="section fade-in">
       <div class="section-header">
-        <h2 class="section-title">{{ editingId ? '✏️ Edit Trip' : '✈️ Log a Journey' }}</h2>
-        <p class="section-sub">Record a UAE ↔ India travel entry</p>
+        <h2 class="section-title">{{ editingId ? '✏️ Edit Record' : '✈️ Log a Travel Record' }}</h2>
+        <p class="section-sub">Enter ticket and travel details as per the physical log sheet</p>
       </div>
 
       <div class="card form-card">
-        <!-- Direction -->
-        <div class="form-group" style="margin-bottom:16px">
-          <label class="form-label">Direction</label>
-          <div class="direction-toggle">
-            <button type="button" class="direction-btn" [class.active]="tripForm.direction==='UAE_TO_INDIA'" (click)="tripForm.direction='UAE_TO_INDIA'">
-              <span class="flag">🇦🇪</span><span class="arrow">→</span><span class="flag">🇮🇳</span>
-              <span class="dir-label">UAE to India</span>
-            </button>
-            <button type="button" class="direction-btn" [class.active]="tripForm.direction==='INDIA_TO_UAE'" (click)="tripForm.direction='INDIA_TO_UAE'">
-              <span class="flag">🇮🇳</span><span class="arrow">→</span><span class="flag">🇦🇪</span>
-              <span class="dir-label">India to UAE</span>
-            </button>
-          </div>
-        </div>
 
-        <!-- Person dropdown (auto-fills designation) -->
+        <!-- Row 1: Person + Designation -->
         <div class="form-row">
           <div class="form-group">
-            <label class="form-label">Traveller</label>
+            <label class="form-label">Traveller *</label>
             <div class="person-select-wrap">
               <select class="form-input person-select" [(ngModel)]="tripForm.username" (change)="onTripUserChange(tripForm.username!)">
                 <option value="">— Select Person —</option>
@@ -85,21 +71,18 @@
                   {{ u.fullName || (u.firstName+' '+u.lastName) }}
                 </option>
               </select>
-              <span class="person-select-hint" *ngIf="!users().length">
-                <a (click)="setTab('users')" class="link-hint">Add users first →</a>
-              </span>
             </div>
           </div>
           <div class="form-group">
             <label class="form-label">Designation <span class="optional">(auto-filled)</span></label>
-            <input type="text" class="form-input" [(ngModel)]="tripForm.designation" placeholder="Auto-filled from user" readonly style="background:var(--surface);cursor:default"/>
+            <input type="text" class="form-input" [(ngModel)]="tripForm.designation" readonly style="background:var(--surface);cursor:default"/>
           </div>
         </div>
 
-        <!-- Issue Date + Airline -->
+        <!-- Row 2: Issue Date + Airline -->
         <div class="form-row">
           <div class="form-group">
-            <label class="form-label">Ticket Issue Date</label>
+            <label class="form-label">Issue Date</label>
             <input type="date" class="form-input" [(ngModel)]="tripForm.issueDate"/>
           </div>
           <div class="form-group">
@@ -108,8 +91,13 @@
           </div>
         </div>
 
-        <!-- Class + Sector -->
+        <!-- Row 3: Sector + Class -->
         <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Sector / Route</label>
+            <input type="text" class="form-input" [(ngModel)]="tripForm.sector"
+                   placeholder="e.g. COK/DXB/TRV  or  DXB/BLR"/>
+          </div>
           <div class="form-group">
             <label class="form-label">Travel Class</label>
             <select class="form-input" [(ngModel)]="tripForm.travelClass">
@@ -117,97 +105,123 @@
               <option *ngFor="let c of travelClasses" [value]="c">{{ c }}</option>
             </select>
           </div>
-          <div class="form-group">
-            <label class="form-label">Sector / Route</label>
-            <input type="text" class="form-input" [(ngModel)]="tripForm.sector" placeholder="e.g. DXB → COK"/>
-          </div>
-        </div>
-
-        <!-- Fare + Currency -->
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Ticket Fare</label>
-            <input type="number" class="form-input" [(ngModel)]="tripForm.fare" placeholder="0.00" min="0" step="0.01"/>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Currency</label>
-            <select class="form-input" [(ngModel)]="tripForm.fareCurrency">
-              <option *ngFor="let c of currencies" [value]="c">{{ c }}</option>
-            </select>
-          </div>
         </div>
 
         <div class="form-divider"><span>Travel Dates</span></div>
 
-        <!-- Departure + Return -->
+        <!-- Travel Date mode selector -->
+        <div class="form-group" style="margin-bottom:12px">
+          <label class="form-label">Travel Date Type</label>
+          <div class="direction-toggle" style="max-width:480px">
+            <button type="button" class="direction-btn" [class.active]="travelDateMode==='date'"
+                    (click)="setTravelDateMode('date')">
+              📅 <span class="dir-label">Specific Date</span>
+            </button>
+            <button type="button" class="direction-btn" [class.active]="travelDateMode==='in_uae'"
+                    (click)="setTravelDateMode('in_uae')">
+              🇦🇪 <span class="dir-label">In UAE</span>
+            </button>
+            <button type="button" class="direction-btn" [class.active]="travelDateMode==='in_india'"
+                    (click)="setTravelDateMode('in_india')">
+              🇮🇳 <span class="dir-label">In India</span>
+            </button>
+          </div>
+          <p class="form-hint" style="margin-top:6px">
+            <ng-container *ngIf="travelDateMode==='date'">Person departed on a specific date</ng-container>
+            <ng-container *ngIf="travelDateMode==='in_uae'">Person was already in UAE (opening balance row)</ng-container>
+            <ng-container *ngIf="travelDateMode==='in_india'">Person was already in India (opening balance row)</ng-container>
+          </p>
+        </div>
+
+        <!-- Row 4: Travel Date (conditional) + Return Date -->
         <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Departure Date</label>
-            <input type="date" class="form-input" [(ngModel)]="tripForm.departureDate"/>
+          <div class="form-group" *ngIf="travelDateMode==='date'">
+            <label class="form-label">Travel Date</label>
+            <input type="date" class="form-input" [(ngModel)]="tripForm.travelDate"/>
+          </div>
+          <div class="form-group" *ngIf="travelDateMode!=='date'">
+            <label class="form-label">Travel Date</label>
+            <input type="text" class="form-input" [value]="travelDateMode==='in_uae' ? 'In UAE' : 'In India'"
+                   readonly style="background:var(--surface);cursor:default;font-weight:600;color:var(--primary)"/>
           </div>
           <div class="form-group">
-            <label class="form-label">Return Date</label>
-            <input type="date" class="form-input" [(ngModel)]="tripForm.returnDate" [min]="tripForm.departureDate"/>
+            <label class="form-label">Return Date *</label>
+            <input type="date" class="form-input" [(ngModel)]="tripForm.returnDate"/>
           </div>
         </div>
-        <!-- Arrival time (UAE→India) -->
-<div class="form-row" *ngIf="tripForm.direction==='UAE_TO_INDIA'">
-  <div class="form-group">
-    <label class="form-label">
-      Arrival Time in India (IST)
-      <span class="optional"> — used for accurate day count</span>
-    </label>
-    <input type="time" class="form-input" [(ngModel)]="tripForm.arrivalTime"
-           placeholder="HH:MM"/>
-    <span class="form-hint" *ngIf="tripForm.arrivalTime">
-      Arrival on {{ tripForm.departureDate | date:'dd MMM' }} at {{ tripForm.arrivalTime }} IST counts as a day in India
-    </span>
-  </div>
-  <div class="form-group"></div>
-</div>
 
-<!-- Departure time (India→UAE) -->
-<div class="form-row" *ngIf="tripForm.direction==='INDIA_TO_UAE'">
-  <div class="form-group">
-    <label class="form-label">
-      Departure Time from India (IST)
-      <span class="optional"> — departure day not counted as India day</span>
-    </label>
-    <input type="time" class="form-input" [(ngModel)]="tripForm.departureTime"
-           placeholder="HH:MM"/>
-    <span class="form-hint">
-      {{ tripForm.departureDate | date:'dd MMM' }} is your last day in India but will NOT be counted
-    </span>
-  </div>
-  <div class="form-group"></div>
-</div>
+        <!-- Row 5: Exit Time + Entry Time -->
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Exit Time <span class="optional">(time left country)</span></label>
+            <input type="text" class="form-input" [(ngModel)]="tripForm.exitTime"
+                   placeholder="e.g. 4:30 AM"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Entry Time <span class="optional">(time arrived back)</span></label>
+            <input type="text" class="form-input" [(ngModel)]="tripForm.entryTime"
+                   placeholder="e.g. 3:10 AM"/>
+          </div>
+        </div>
 
-        <div class="duration-preview" *ngIf="tripForm.departureDate && tripForm.returnDate">
+        <div class="form-divider"><span>Days Count</span></div>
+
+        <!-- Row 6: In India Days + In UAE Days -->
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">
+              🇮🇳 Days in India
+              <span class="optional"> — enter manually from log sheet</span>
+            </label>
+            <input type="number" class="form-input days-input days-india-input"
+                   [(ngModel)]="tripForm.inIndiaDays"
+                   min="0" step="1" placeholder="0"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">
+              🇦🇪 Days in UAE / Abroad
+              <span class="optional"> — includes transit + gap to next trip</span>
+            </label>
+            <input type="number" class="form-input days-input days-uae-input"
+                   [(ngModel)]="tripForm.inUAEDays"
+                   min="0" step="1" placeholder="0"/>
+          </div>
+        </div>
+
+        <!-- Days preview -->
+        <div class="duration-preview" *ngIf="(tripForm.inIndiaDays || 0) + (tripForm.inUAEDays || 0) > 0">
           <svg viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/><path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/></svg>
-          Duration: <strong>{{ getDurationPreview() }} days</strong>
-          <span class="duration-note">(inclusive)</span>
+          Total: <strong>{{ (tripForm.inIndiaDays || 0) + (tripForm.inUAEDays || 0) }} days</strong>
+          <span class="duration-note">(🇮🇳 {{ tripForm.inIndiaDays || 0 }} + 🇦🇪 {{ tripForm.inUAEDays || 0 }})</span>
         </div>
 
         <div class="form-group" style="margin-top:12px">
-          <label class="form-label">Notes <span class="optional">(optional)</span></label>
-          <textarea class="form-input" [(ngModel)]="tripForm.notes" rows="3" placeholder="Any notes about this trip..."></textarea>
+          <label class="form-label">Remarks <span class="optional">(optional)</span></label>
+          <textarea class="form-input" [(ngModel)]="tripForm.notes" rows="2"
+                    placeholder="Any notes about this travel record..."></textarea>
         </div>
 
         <div class="form-actions">
           <button type="button" class="btn btn-ghost" (click)="resetForm()" *ngIf="editingId">Cancel</button>
           <button type="button" class="btn btn-primary" (click)="submitTrip()" [disabled]="loading()">
-            <span *ngIf="!loading()">{{ editingId ? 'Update Trip' : 'Save Trip' }}</span>
+            <span *ngIf="!loading()">{{ editingId ? 'Update Record' : 'Save Record' }}</span>
             <span *ngIf="loading()">Saving…</span>
           </button>
         </div>
       </div>
     </section>
 
-    <!-- ── ALL TRIPS ─────────────────────────────────────────── -->
+    <!-- ── ALL RECORDS ───────────────────────────────────────── -->
     <section *ngIf="activeTab()==='list'" class="section fade-in">
       <div class="section-header">
-        <h2 class="section-title">🗂️ All Trips</h2>
+        <h2 class="section-title">🗂️ All Records</h2>
         <p class="section-sub">{{ trips().length }} records found</p>
+      </div>
+
+      <!-- NRI Warning -->
+      <div class="alert alert-warning" *ngIf="nriWarning"
+           style="background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:12px 16px;margin-bottom:16px;color:#856404;font-weight:500;">
+        {{ nriWarning }}
       </div>
 
       <!-- Filters -->
@@ -218,14 +232,6 @@
             <select class="form-input" [(ngModel)]="listFilter.username">
               <option value="">All people</option>
               <option *ngFor="let u of availableUsernames()" [value]="u">{{ u }}</option>
-            </select>
-          </div>
-          <div class="filter-group">
-            <label class="filter-label">Direction</label>
-            <select class="form-input" [(ngModel)]="listFilter.direction">
-              <option value="">All directions</option>
-              <option value="UAE_TO_INDIA">UAE → India</option>
-              <option value="INDIA_TO_UAE">India → UAE</option>
             </select>
           </div>
           <div class="filter-group">
@@ -244,7 +250,7 @@
           </div>
           <div class="filter-actions">
             <button class="btn btn-primary btn-sm" (click)="applyListFilter()">Apply</button>
-            <button class="btn btn-ghost btn-sm" (click)="clearListFilter()">Clear</button>
+            <button class="btn btn-ghost btn-sm"   (click)="clearListFilter()">Clear</button>
           </div>
         </div>
         <div class="active-filter-badge" *ngIf="listFilter.username">
@@ -266,25 +272,17 @@
         <h3 class="pdf-panel-title">📄 Travel Summary PDF</h3>
         <div class="filter-grid">
           <div class="filter-group filter-group--wide">
-            <label class="filter-label">Person <span class="optional">(shown in report title)</span></label>
+            <label class="filter-label">Person</label>
             <select class="form-input" [(ngModel)]="pdfFilter.username">
               <option value="">All people</option>
               <option *ngFor="let u of availableUsernames()" [value]="u">{{ u }}</option>
             </select>
           </div>
           <div class="filter-group">
-            <label class="filter-label">Direction</label>
-            <select class="form-input" [(ngModel)]="pdfFilter.direction">
-              <option value="">All directions</option>
-              <option value="UAE_TO_INDIA">UAE → India</option>
-              <option value="INDIA_TO_UAE">India → UAE</option>
-            </select>
-          </div>
-          <div class="filter-group">
-            <label class="filter-label">Year</label>
+            <label class="filter-label">Financial Year <span class="optional">(Apr–Mar)</span></label>
             <select class="form-input" [(ngModel)]="pdfFilter.year">
-              <option value="">All years</option>
-              <option *ngFor="let y of yearOptions" [value]="y">{{ y }}</option>
+              <option value="">All dates</option>
+              <option *ngFor="let y of yearOptions" [value]="y">FY {{ y }}-{{ y+1 }}</option>
             </select>
           </div>
           <div class="filter-group">
@@ -302,17 +300,34 @@
             </button>
           </div>
         </div>
-        <p class="pdf-note">Portrait A4 — columns: No. | Issue Date | Name | Airlines | Sector | Class | Travel Date | Return Date | In India | In UAE/Abroad | Remarks. Grouped by year with total row.</p>
+        <p class="pdf-note">Landscape A4 — columns: No. | Issue Date | Name | Airlines | Sector | Class | Travel Date | Return Date | In India | In UAE/Abroad | EXIT TIME | ENTRY TIME | Remarks</p>
       </div>
 
       <div class="loading-state" *ngIf="loading()"><div class="spinner"></div><p>Loading…</p></div>
-      <div class="empty-state" *ngIf="!loading() && trips().length===0"><div class="empty-icon">✈️</div><h3>No trips found</h3><p>Try clearing the filters or add a trip.</p></div>
+      <div class="empty-state"   *ngIf="!loading() && trips().length===0">
+        <div class="empty-icon">✈️</div><h3>No records found</h3><p>Try clearing the filters or add a record.</p>
+      </div>
 
       <!-- Desktop table -->
       <div class="table-wrapper" *ngIf="!loading() && trips().length>0">
         <table class="trips-table">
           <thead>
-            <tr><th>#</th><th>Name</th><th>Direction</th><th>Issue Date</th><th>Departure</th><th>Return</th><th>Days</th><th>Airline</th><th>Class</th><th>Sector</th><th>Fare</th><th>Notes</th><th>Actions</th></tr>
+            <tr>
+              <th>#</th>
+              <th>Name</th>
+              <th>Issue Date</th>
+              <th>Sector</th>
+              <th>Class</th>
+              <th>Travel Date</th>
+              <th>Return Date</th>
+              <th>🇮🇳 India</th>
+              <th>🇦🇪 UAE</th>
+              <th>Total</th>
+              <th>Exit</th>
+              <th>Entry</th>
+              <th>Remarks</th>
+              <th>Actions</th>
+            </tr>
           </thead>
           <tbody>
             <tr *ngFor="let trip of trips(); let i=index" class="table-row">
@@ -320,23 +335,34 @@
               <td>
                 <div class="user-cell">
                   <div class="mini-avatar">{{ trip.username[0] }}</div>
-                  <div><div class="user-cell-name">{{ trip.username }}</div><div class="user-cell-role">{{ trip.designation }}</div></div>
+                  <div>
+                    <div class="user-cell-name">{{ trip.username }}</div>
+                    <div class="user-cell-role">{{ trip.designation }}</div>
+                  </div>
                 </div>
               </td>
-              <td><span class="badge" [ngClass]="getDirectionBadgeClass(trip.direction)">{{ getDirectionLabel(trip.direction) }}</span></td>
               <td class="date-cell">{{ trip.issueDate ? formatDate(trip.issueDate) : '—' }}</td>
-              <td class="date-cell">{{ formatDate(trip.departureDate) }}</td>
-              <td class="date-cell">{{ formatDate(trip.returnDate) }}</td>
-              <td><span class="days-pill">{{ trip.daysCount }} days</span></td>
-              <td class="text-cell">{{ trip.airline || '—' }}</td>
+              <td class="sector-cell"><strong>{{ trip.sector || '—' }}</strong></td>
               <td><span class="class-badge" *ngIf="trip.travelClass">{{ trip.travelClass }}</span><span *ngIf="!trip.travelClass">—</span></td>
-              <td class="text-cell">{{ trip.sector || '—' }}</td>
-              <td class="fare-cell"><ng-container *ngIf="trip.fare!=null">{{ trip.fareCurrency }} {{ trip.fare | number:'1.0-0' }}</ng-container><ng-container *ngIf="trip.fare==null">—</ng-container></td>
+              <td class="date-cell">
+                <span *ngIf="trip.travelDateText" class="location-badge">{{ trip.travelDateText }}</span>
+                <span *ngIf="!trip.travelDateText">{{ formatDate(trip.travelDate) || '—' }}</span>
+              </td>
+              <td class="date-cell">{{ trip.returnDate ? formatDate(trip.returnDate) : '—' }}</td>
+              <td><span class="days-pill days-india" *ngIf="trip.inIndiaDays">{{ trip.inIndiaDays }}</span><span *ngIf="!trip.inIndiaDays" class="zero-days">0</span></td>
+              <td><span class="days-pill days-uae"   *ngIf="trip.inUAEDays">{{ trip.inUAEDays }}</span><span   *ngIf="!trip.inUAEDays"   class="zero-days">0</span></td>
+              <td><strong>{{ (trip.inIndiaDays || 0) + (trip.inUAEDays || 0) }}</strong></td>
+              <td class="time-cell">{{ trip.exitTime  || '—' }}</td>
+              <td class="time-cell">{{ trip.entryTime || '—' }}</td>
               <td class="notes-cell">{{ trip.notes || '—' }}</td>
               <td>
                 <div class="action-btns">
-                  <button class="icon-btn edit-btn" (click)="editTrip(trip)" title="Edit"><svg viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10z"/></svg></button>
-                  <button class="icon-btn delete-btn" (click)="deleteTrip(trip)" title="Delete"><svg viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/><path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z" clip-rule="evenodd"/></svg></button>
+                  <button class="icon-btn edit-btn"   (click)="editTrip(trip)"   title="Edit">
+                    <svg viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10z"/></svg>
+                  </button>
+                  <button class="icon-btn delete-btn" (click)="deleteTrip(trip)" title="Delete">
+                    <svg viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/><path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z" clip-rule="evenodd"/></svg>
+                  </button>
                 </div>
               </td>
             </tr>
@@ -349,21 +375,33 @@
         <div class="mobile-card" *ngFor="let trip of trips(); let i=index">
           <div class="mc-header">
             <div class="mc-num">{{ i+1 }}</div>
-            <span class="badge" [ngClass]="getDirectionBadgeClass(trip.direction)">{{ getDirectionLabel(trip.direction) }}</span>
+            <strong class="sector-cell">{{ trip.sector || '—' }}</strong>
+            <span class="class-badge" *ngIf="trip.travelClass" style="margin-left:6px">{{ trip.travelClass }}</span>
             <div class="mc-actions">
-              <button class="icon-btn edit-btn" (click)="editTrip(trip)"><svg viewBox="0 0 16 16" fill="currentColor" width="13" height="13"><path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10z"/></svg></button>
-              <button class="icon-btn delete-btn" (click)="deleteTrip(trip)"><svg viewBox="0 0 16 16" fill="currentColor" width="13" height="13"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/></svg></button>
+              <button class="icon-btn edit-btn"   (click)="editTrip(trip)">
+                <svg viewBox="0 0 16 16" fill="currentColor" width="13" height="13"><path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10z"/></svg>
+              </button>
+              <button class="icon-btn delete-btn" (click)="deleteTrip(trip)">
+                <svg viewBox="0 0 16 16" fill="currentColor" width="13" height="13"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/></svg>
+              </button>
             </div>
           </div>
-          <div class="mc-name"><div class="mini-avatar">{{ trip.username[0] }}</div><div><div class="user-cell-name">{{ trip.username }}</div><div class="user-cell-role">{{ trip.designation }}</div></div></div>
+          <div class="mc-name">
+            <div class="mini-avatar">{{ trip.username[0] }}</div>
+            <div><div class="user-cell-name">{{ trip.username }}</div><div class="user-cell-role">{{ trip.designation }}</div></div>
+          </div>
           <div class="mc-grid">
-            <div class="mc-item"><span class="mc-lbl">Departure</span><span class="mc-val">{{ formatDate(trip.departureDate) }}</span></div>
-            <div class="mc-item"><span class="mc-lbl">Return</span><span class="mc-val">{{ formatDate(trip.returnDate) }}</span></div>
-            <div class="mc-item"><span class="mc-lbl">Days</span><span class="days-pill">{{ trip.daysCount }}</span></div>
-            <div class="mc-item" *ngIf="trip.airline"><span class="mc-lbl">Airline</span><span class="mc-val">{{ trip.airline }}</span></div>
-            <div class="mc-item" *ngIf="trip.travelClass"><span class="mc-lbl">Class</span><span class="class-badge">{{ trip.travelClass }}</span></div>
-            <div class="mc-item" *ngIf="trip.sector"><span class="mc-lbl">Sector</span><span class="mc-val">{{ trip.sector }}</span></div>
-            <div class="mc-item" *ngIf="trip.fare!=null"><span class="mc-lbl">Fare</span><span class="mc-val fare-cell">{{ trip.fareCurrency }} {{ trip.fare | number:'1.0-0' }}</span></div>
+            <div class="mc-item"><span class="mc-lbl">Travel Date</span>
+              <span class="mc-val">
+                <span *ngIf="trip.travelDateText" class="location-badge">{{ trip.travelDateText }}</span>
+                <span *ngIf="!trip.travelDateText">{{ formatDate(trip.travelDate) || '—' }}</span>
+              </span>
+            </div>
+            <div class="mc-item"><span class="mc-lbl">Return Date</span><span class="mc-val">{{ formatDate(trip.returnDate) || '—' }}</span></div>
+            <div class="mc-item"><span class="mc-lbl">🇮🇳 India Days</span><span class="days-pill days-india">{{ trip.inIndiaDays || 0 }}</span></div>
+            <div class="mc-item"><span class="mc-lbl">🇦🇪 UAE Days</span><span class="days-pill days-uae">{{ trip.inUAEDays || 0 }}</span></div>
+            <div class="mc-item" *ngIf="trip.exitTime"><span class="mc-lbl">Exit</span><span class="mc-val">{{ trip.exitTime }}</span></div>
+            <div class="mc-item" *ngIf="trip.entryTime"><span class="mc-lbl">Entry</span><span class="mc-val">{{ trip.entryTime }}</span></div>
           </div>
           <div class="mc-notes" *ngIf="trip.notes">📝 {{ trip.notes }}</div>
         </div>
@@ -371,13 +409,16 @@
     </section>
 
     <!-- ── HISTORY ────────────────────────────────────────────── -->
-     <div class="alert alert-warning" *ngIf="nriWarning" style="background:#fff3cd;border:1fvpx solid #ffc107;border-radius:8px;padding:12px 16px;margin-bottom:16px;color:#856404;font-weight:500;">
-  {{ nriWarning }}
-</div>
     <section *ngIf="activeTab()==='history'" class="section fade-in">
       <div class="section-header">
         <h2 class="section-title">📊 Travel History</h2>
         <p class="section-sub">Days spent in each country</p>
+      </div>
+
+      <!-- NRI Warning -->
+      <div class="alert alert-warning" *ngIf="nriWarning"
+           style="background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:12px 16px;margin-bottom:16px;color:#856404;font-weight:500;">
+        {{ nriWarning }}
       </div>
 
       <div class="card filter-card">
@@ -390,10 +431,10 @@
             </select>
           </div>
           <div class="filter-group">
-            <label class="filter-label">Year</label>
+            <label class="filter-label">Financial Year</label>
             <select class="form-input" [(ngModel)]="historyYear">
               <option value="ALL">All years</option>
-              <option *ngFor="let y of availableYears()" [value]="y">{{ y }}</option>
+              <option *ngFor="let y of availableYears()" [value]="y">FY {{ y }}-{{ y+1 }}</option>
             </select>
           </div>
           <div class="filter-group">
@@ -421,7 +462,7 @@
             <div class="stat-body">
               <div class="stat-number">{{ stats()!.daysInIndia }}</div>
               <div class="stat-label">Days in India</div>
-              <div class="stat-sub">{{ stats()!.tripsToIndia }} trip{{ stats()!.tripsToIndia!==1?'s':'' }}</div>
+              <div class="stat-sub">{{ stats()!.totalTrips }} record{{ stats()!.totalTrips!==1?'s':'' }}</div>
             </div>
             <div class="stat-bar-wrapper"><div class="stat-bar stat-bar-india" [style.width.%]="getIndiaPct(stats()!.daysInIndia,stats()!.daysInUAE)"></div></div>
           </div>
@@ -430,7 +471,6 @@
             <div class="stat-body">
               <div class="stat-number">{{ stats()!.daysInUAE }}</div>
               <div class="stat-label">Days in UAE</div>
-              <div class="stat-sub">{{ stats()!.tripsToUAE }} trip{{ stats()!.tripsToUAE!==1?'s':'' }}</div>
             </div>
             <div class="stat-bar-wrapper"><div class="stat-bar stat-bar-uae" [style.width.%]="getUaePct(stats()!.daysInIndia,stats()!.daysInUAE)"></div></div>
           </div>
@@ -439,7 +479,7 @@
             <div class="stat-body">
               <div class="stat-number">{{ stats()!.totalDays }}</div>
               <div class="stat-label">Total Days</div>
-              <div class="stat-sub">{{ stats()!.totalTrips }} trips</div>
+              <div class="stat-sub">{{ stats()!.totalTrips }} records</div>
             </div>
           </div>
         </div>
@@ -453,21 +493,34 @@
             <div class="split-bar-india" [style.width.%]="getIndiaPct(stats()!.daysInIndia,stats()!.daysInUAE)"></div>
             <div class="split-bar-uae" [style.flex]="1"></div>
           </div>
+          <!-- NRI limit indicator -->
+          <div class="nri-limit-bar" *ngIf="stats()!.daysInIndia > 0">
+            <div class="nri-bar-track">
+              <div class="nri-bar-fill" [style.width.%]="getIndiaNriPct(stats()!.daysInIndia)"
+                   [class.nri-danger]="stats()!.daysInIndia >= 150"></div>
+              <div class="nri-bar-limit"></div>
+            </div>
+            <div class="nri-bar-label">
+              {{ stats()!.daysInIndia }} / 182 India days
+              <span class="nri-status" [class.danger]="stats()!.daysInIndia >= 182">
+                {{ stats()!.daysInIndia >= 182 ? '⚠️ NRI limit exceeded' : stats()!.daysInIndia >= 150 ? '⚠️ Approaching limit' : '✅ Safe' }}
+              </span>
+            </div>
+          </div>
         </div>
 
         <div class="card table-card" *ngIf="historyView==='yearly' && stats()!.yearly.length>0">
           <h3 class="card-title">Year-wise Breakdown</h3>
           <div class="table-wrapper">
             <table class="trips-table">
-              <thead><tr><th>Year</th><th>🇮🇳 Days India</th><th>🇦🇪 Days UAE</th><th>Trips → India</th><th>Trips → UAE</th><th>Total Days</th></tr></thead>
+              <thead><tr><th>Year</th><th>🇮🇳 Days India</th><th>🇦🇪 Days UAE</th><th>Records</th><th>Total Days</th></tr></thead>
               <tbody>
                 <tr *ngFor="let row of stats()!.yearly">
                   <td><strong>{{ row.year }}</strong></td>
                   <td><span class="days-pill days-india">{{ row.india }}</span></td>
                   <td><span class="days-pill days-uae">{{ row.uae }}</span></td>
-                  <td>{{ row.tripsToIndia }}</td>
-                  <td>{{ row.tripsToUAE }}</td>
-                  <td><strong>{{ row.india+row.uae }}</strong></td>
+                  <td>{{ row.trips }}</td>
+                  <td><strong>{{ row.india + row.uae }}</strong></td>
                 </tr>
               </tbody>
             </table>
@@ -478,22 +531,23 @@
           <h3 class="card-title">Month-wise Breakdown</h3>
           <div class="table-wrapper">
             <table class="trips-table">
-              <thead><tr><th>Month</th><th>🇮🇳 Days India</th><th>🇦🇪 Days UAE</th><th>Trips → India</th><th>Trips → UAE</th><th>Total Days</th></tr></thead>
+              <thead><tr><th>Month</th><th>🇮🇳 Days India</th><th>🇦🇪 Days UAE</th><th>Records</th><th>Total Days</th></tr></thead>
               <tbody>
                 <tr *ngFor="let row of stats()!.monthly">
                   <td><strong>{{ formatMonth(row.month) }}</strong></td>
                   <td><span class="days-pill days-india">{{ row.india }}</span></td>
                   <td><span class="days-pill days-uae">{{ row.uae }}</span></td>
-                  <td>{{ row.tripsToIndia }}</td>
-                  <td>{{ row.tripsToUAE }}</td>
-                  <td><strong>{{ row.india+row.uae }}</strong></td>
+                  <td>{{ row.trips }}</td>
+                  <td><strong>{{ row.india + row.uae }}</strong></td>
                 </tr>
               </tbody>
             </table>
           </div>
         </div>
 
-        <div class="empty-state" *ngIf="stats()!.totalTrips===0"><div class="empty-icon">📊</div><h3>No data yet</h3><p>Add trips to see history.</p></div>
+        <div class="empty-state" *ngIf="stats()!.totalTrips===0">
+          <div class="empty-icon">📊</div><h3>No data yet</h3><p>Add records to see history.</p>
+        </div>
       </ng-container>
     </section>
 
@@ -510,69 +564,42 @@
         </button>
       </div>
 
-      <!-- User Form (inline) -->
+      <!-- User Form -->
       <div class="card form-card user-form-card" *ngIf="showUserForm">
         <div class="user-form-header">
           <h3>{{ editingUserId ? '✏️ Edit User' : '➕ New User' }}</h3>
           <button class="btn btn-ghost btn-sm" (click)="cancelUserForm()">Cancel</button>
         </div>
-
         <div class="form-row">
           <div class="form-group">
             <label class="form-label">First Name *</label>
-            <input type="text" class="form-input" [(ngModel)]="userForm.firstName" placeholder="Sajeev"/>
+            <input type="text" class="form-input" [(ngModel)]="userForm.firstName"/>
           </div>
           <div class="form-group">
             <label class="form-label">Last Name *</label>
-            <input type="text" class="form-input" [(ngModel)]="userForm.lastName" placeholder="PK"/>
+            <input type="text" class="form-input" [(ngModel)]="userForm.lastName"/>
           </div>
         </div>
-
         <div class="form-row">
           <div class="form-group">
             <label class="form-label">Designation *</label>
-            <input type="text" class="form-input" [(ngModel)]="userForm.designation" placeholder="Managing Director"/>
+            <input type="text" class="form-input" [(ngModel)]="userForm.designation"/>
           </div>
           <div class="form-group">
             <label class="form-label">Email <span class="optional">(optional)</span></label>
-            <input type="email" class="form-input" [(ngModel)]="userForm.email" placeholder="sajeev@example.com"/>
+            <input type="email" class="form-input" [(ngModel)]="userForm.email"/>
           </div>
         </div>
-
         <div class="form-row">
           <div class="form-group">
             <label class="form-label">Phone <span class="optional">(optional)</span></label>
-            <input type="tel" class="form-input" [(ngModel)]="userForm.phone" placeholder="+971 50 123 4567"/>
+            <input type="tel" class="form-input" [(ngModel)]="userForm.phone"/>
           </div>
-          <div class="form-group">
-            <label class="form-label">Nationality <span class="optional">(optional)</span></label>
-            <select class="form-input" [(ngModel)]="userForm.nationality">
-              <option value="">— Select —</option>
-              <option *ngFor="let n of nationalities" [value]="n">{{ n }}</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="form-row">
           <div class="form-group">
             <label class="form-label">Passport No. <span class="optional">(optional)</span></label>
-            <input type="text" class="form-input" [(ngModel)]="userForm.passportNo" placeholder="A1234567"/>
-          </div>
-          <div class="form-group" style="justify-content:flex-end;padding-top:6px">
-            <label class="form-label">&nbsp;</label>
-            <label class="toggle-label">
-              <input type="checkbox" [(ngModel)]="userForm.isActive" class="toggle-check"/>
-              <span class="toggle-ui"></span>
-              <span class="toggle-text">Active User</span>
-            </label>
+            <input type="text" class="form-input" [(ngModel)]="userForm.passportNo"/>
           </div>
         </div>
-
-        <div class="form-group">
-          <label class="form-label">Notes <span class="optional">(optional)</span></label>
-          <textarea class="form-input" [(ngModel)]="userForm.notes" rows="2" placeholder="Any notes about this person..."></textarea>
-        </div>
-
         <div class="form-actions">
           <button type="button" class="btn btn-ghost" (click)="cancelUserForm()">Cancel</button>
           <button type="button" class="btn btn-primary" (click)="submitUser()" [disabled]="usersLoading()">
@@ -582,20 +609,14 @@
         </div>
       </div>
 
-      <!-- Loading -->
-      <div class="loading-state" *ngIf="usersLoading() && !showUserForm"><div class="spinner"></div><p>Loading users…</p></div>
-
-      <!-- Empty -->
+      <div class="loading-state" *ngIf="usersLoading() && !showUserForm"><div class="spinner"></div></div>
       <div class="empty-state" *ngIf="!usersLoading() && users().length===0 && !showUserForm">
-        <div class="empty-icon">👤</div>
-        <h3>No users yet</h3>
-        <p>Add your first traveller to get started.</p>
+        <div class="empty-icon">👤</div><h3>No users yet</h3>
         <button class="btn btn-primary" style="margin-top:16px" (click)="openUserForm()">Add First User</button>
       </div>
 
-      <!-- Users grid -->
       <div class="users-grid" *ngIf="!usersLoading() && users().length>0">
-        <div class="user-card" *ngFor="let user of users(); let i=index" [class.inactive]="!user.isActive">
+        <div class="user-card" *ngFor="let user of users()" [class.inactive]="!user.isActive">
           <div class="user-card-header">
             <div class="user-card-avatar">{{ getUserInitials(user) }}</div>
             <div class="user-card-meta">
@@ -604,37 +625,25 @@
               <span class="user-card-status" [class.inactive]="!user.isActive">{{ user.isActive ? 'Active' : 'Inactive' }}</span>
             </div>
             <div class="user-card-actions">
-              <button class="icon-btn edit-btn" (click)="openUserForm(user)" title="Edit"><svg viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10z"/></svg></button>
-              <button class="icon-btn delete-btn" (click)="deleteUser(user)" title="Delete"><svg viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/><path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z" clip-rule="evenodd"/></svg></button>
+              <button class="icon-btn edit-btn"   (click)="openUserForm(user)">
+                <svg viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10z"/></svg>
+              </button>
+              <button class="icon-btn delete-btn" (click)="deleteUser(user)">
+                <svg viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/><path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z" clip-rule="evenodd"/></svg>
+              </button>
             </div>
           </div>
-
           <div class="user-card-stats">
-            <div class="user-stat">
-              <div class="user-stat-val">{{ user.tripCount || 0 }}</div>
-              <div class="user-stat-lbl">Trips</div>
-            </div>
-            <div class="user-stat india">
-              <div class="user-stat-val">{{ user.daysInIndia || 0 }}</div>
-              <div class="user-stat-lbl">Days India</div>
-            </div>
-            <div class="user-stat uae">
-              <div class="user-stat-val">{{ user.daysInUAE || 0 }}</div>
-              <div class="user-stat-lbl">Days UAE</div>
-            </div>
-            <div class="user-stat total">
-              <div class="user-stat-val">{{ user.totalDays || 0 }}</div>
-              <div class="user-stat-lbl">Total Days</div>
-            </div>
+            <div class="user-stat"><div class="user-stat-val">{{ user.tripCount || 0 }}</div><div class="user-stat-lbl">Records</div></div>
+            <div class="user-stat india"><div class="user-stat-val">{{ user.daysInIndia || 0 }}</div><div class="user-stat-lbl">Days India</div></div>
+            <div class="user-stat uae"><div class="user-stat-val">{{ user.daysInUAE || 0 }}</div><div class="user-stat-lbl">Days UAE</div></div>
+            <div class="user-stat total"><div class="user-stat-val">{{ user.totalDays || 0 }}</div><div class="user-stat-lbl">Total</div></div>
           </div>
-
           <div class="user-card-footer">
             <span *ngIf="user.email"><span class="uc-icon">✉️</span> {{ user.email }}</span>
-            <span *ngIf="user.nationality"><span class="uc-icon">🌏</span> {{ user.nationality }}</span>
             <span *ngIf="user.passportNo"><span class="uc-icon">🛂</span> {{ user.passportNo }}</span>
-            <button class="btn btn-ghost btn-sm" style="margin-left:auto" (click)="historyUsername=user.fullName||''; setTab('history')">
-              View History →
-            </button>
+            <button class="btn btn-ghost btn-sm" style="margin-left:auto"
+                    (click)="historyUsername=user.fullName||''; setTab('history')">View History →</button>
           </div>
         </div>
       </div>

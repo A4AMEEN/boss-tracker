@@ -562,3 +562,101 @@ select.form-input {
 @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes spin { to { transform: rotate(360deg); } }
 .fade-in { animation: fadeIn 0.22s ease; }
+/* ── ADD THESE TO YOUR app.component.scss ──────────────────────────────────── */
+
+/* Days input styling */
+.days-input {
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-align: center;
+}
+.days-india-input { border-left: 4px solid #27ae60 !important; }
+.days-uae-input   { border-left: 4px solid #2980b9 !important; }
+
+/* Sector cell */
+.sector-cell {
+  font-family: 'Courier New', monospace;
+  font-size: 0.82rem;
+  letter-spacing: 0.03em;
+  color: var(--text-primary);
+}
+
+/* Location badge (In UAE / In India) */
+.location-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  background: var(--primary-light, #e8f0fe);
+  color: var(--primary, #1a3366);
+}
+
+/* Time cell */
+.time-cell {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+/* Zero days */
+.zero-days {
+  color: var(--text-muted, #aaa);
+  font-size: 0.8rem;
+}
+
+/* days-india / days-uae pill colours */
+.days-pill.days-india {
+  background: #d4edda;
+  color: #155724;
+}
+.days-pill.days-uae {
+  background: #cce5ff;
+  color: #004085;
+}
+
+/* NRI limit bar */
+.nri-limit-bar {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.nri-bar-track {
+  position: relative;
+  height: 8px;
+  background: #e9ecef;
+  border-radius: 4px;
+  overflow: visible;
+}
+.nri-bar-fill {
+  height: 100%;
+  background: #27ae60;
+  border-radius: 4px;
+  transition: width 0.4s ease;
+}
+.nri-bar-fill.nri-danger { background: #e74c3c; }
+.nri-bar-limit {
+  position: absolute;
+  top: -3px;
+  left: 99.5%;
+  width: 2px;
+  height: 14px;
+  background: #e74c3c;
+  border-radius: 1px;
+}
+.nri-bar-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+.nri-status { font-weight: 600; }
+.nri-status.danger { color: #e74c3c; }
+
+/* Financial year label on history filter */
+.fy-label {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}

@@ -6,7 +6,7 @@ import { Trip, TripFilter, Stats } from '../models/trip.model';
 
 @Injectable({ providedIn: 'root' })
 export class TripService {
-  private apiUrl = 'https://tracker-backend-self.vercel.app/api';
+  private apiUrl = 'http://localhost:3000/api';
 
   constructor(private http: HttpClient) {}
 
