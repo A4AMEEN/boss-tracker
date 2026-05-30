@@ -6,7 +6,7 @@ import { User } from '../models/user.model';
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
-  private apiUrl = 'http://localhost:3000/api/users';
+  private apiUrl = 'https://tracker-backend-self.vercel.app/api/users';
 
   constructor(private http: HttpClient) {}
 

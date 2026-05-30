@@ -59,39 +59,39 @@ body {
 }
 .brand { display: flex; align-items: center; gap: 11px; }
 .brand-icon {
-    width: 40px;
-    height: 40px;
-    background: linear-gradient(135deg, var(--india-color), var(--uae-color));
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, var(--india-color), var(--uae-color));
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
 }
 .brand-icon svg { width: 20px; height: 20px; }
 .brand-name {
-    font-family: var(--font-display);
-    font-size: 20px;
-    line-height: 1.1;
-    color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: 20px;
+  line-height: 1.1;
+  color: var(--text-primary);
 }
-.brand-sub[_ngcontent-ng-c88656526] {
-    font-size: 11px;
-    color: rgb(151 0 0 / 50%);
-    margin-top: 1px;
+.brand-sub {
+  font-size: 11px;
+  color: rgb(151 0 0 / 50%);
+  margin-top: 1px;
 }
 .header-user { display: flex; align-items: center; gap: 10px; }
 .user-avatar {
-    width: 36px;
-    height: 36px;
-    background: linear-gradient(135deg, var(--india-color), #c0392b);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 13px;
-    font-weight: 600;
-    color: white;
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, var(--india-color), #c0392b);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
 }
 .user-name { font-size: 13px; font-weight: 600; color: #e70000; line-height: 1.2; }
 .user-role { font-size: 11px; color: rgba(9, 37, 199, 0.5); }
@@ -133,8 +133,12 @@ body {
 }
 
 /* ── Main Content ───────────────────────────────────────────── */
+/* FIX: was missing width:100%, content hugged left side */
 .main-content {
-  flex: 1; max-width: 1280px; margin: 0 auto; width: 100%;
+  flex: 1;
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
   padding: 28px 20px 48px;
 }
 
@@ -164,8 +168,12 @@ body {
 .table-card .card-title { font-size: 14px; font-weight: 700; color: var(--navy); margin-bottom: 14px; }
 
 /* ── Form ───────────────────────────────────────────────────── */
+/* FIX: added margin: 0 auto so form centres within main-content */
 .form-card {
-  padding: 28px 28px 24px; max-width: 760px;
+  padding: 28px 28px 24px;
+  max-width: 760px;
+  margin-left: auto;
+  margin-right: auto;
 }
 .form-group { display: flex; flex-direction: column; gap: 6px; }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
@@ -300,50 +308,134 @@ select.form-input {
 .pdf-panel-title { font-size: 14px; font-weight: 700; color: #c0392b; margin-bottom: 14px; }
 .pdf-note { margin: 12px 0 0; font-size: 11.5px; color: var(--text-muted); font-style: italic; line-height: 1.6; }
 
-/* ── Table ──────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════
+   TABLE
+   FIX 1: removed min-width: 900px — was forcing horizontal scroll
+           even when the viewport had plenty of room.
+   FIX 2: tighter cell padding (11px 13px → 9px 10px) so all 14
+           columns fit comfortably at normal desktop widths.
+   FIX 3: smaller header/body font (13px → 12.5px, 11px → 10.5px)
+           shaves enough width for the last columns to breathe.
+   FIX 4: sticky #/Name columns keep context when narrow viewports
+           DO still scroll.
+   FIX 5: scroll-shadow trick on wrapper visually signals overflow.
+   ══════════════════════════════════════════════════════════════ */
 .table-wrapper {
-  overflow-x: auto; -webkit-overflow-scrolling: touch;
-  border-radius: var(--radius-md); box-shadow: var(--shadow-md); border: 1px solid var(--border);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border);
+  /* Scroll-shadow: fades appear at left/right when content overflows */
+  background:
+    linear-gradient(to right,  #ffffff 20px, transparent 20px),
+    linear-gradient(to left,   #ffffff 20px, transparent 20px) 100% 0,
+    radial-gradient(farthest-side at 0   50%, rgba(15,34,81,0.07), transparent) 0 50%,
+    radial-gradient(farthest-side at 100% 50%, rgba(15,34,81,0.07), transparent) 100% 50%;
+  background-repeat: no-repeat;
+  background-size: 40px 100%, 40px 100%, 12px 100%, 12px 100%;
+  background-attachment: local, local, scroll, scroll;
 }
-.trips-table { width: 100%; border-collapse: collapse; min-width: 900px; font-size: 13px; }
+.table-wrapper::-webkit-scrollbar        { height: 6px; }
+.table-wrapper::-webkit-scrollbar-track  { background: var(--surface-2); border-radius: 3px; }
+.table-wrapper::-webkit-scrollbar-thumb  { background: var(--blue-mid);  border-radius: 3px; }
+.table-wrapper::-webkit-scrollbar-thumb:hover { background: var(--navy-light); }
+
+.trips-table {
+  width: 100%;
+  border-collapse: collapse;
+  /* No hard min-width — table fills available space.
+     Only scrolls on genuinely narrow viewports. */
+  font-size: 12.5px;
+  table-layout: auto;
+}
 .trips-table thead { background: var(--navy); }
 .trips-table thead th {
-  padding: 11px 13px; text-align: left;
-  font-size: 11px; font-weight: 800; color: rgba(46, 39, 39, 0.85);
+  padding: 10px 10px; text-align: left;
+  font-size: 10.5px; font-weight: 800; color: rgba(46, 39, 39, 0.85);
   text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap;
   border-right: 1px solid rgba(255,255,255,0.08);
 }
 .trips-table thead th:last-child { border-right: none; }
+
+/* Sticky # column */
+.trips-table thead th:nth-child(1),
+.trips-table tbody td:nth-child(1) {
+  position: sticky; left: 0; z-index: 2;
+}
+.trips-table thead th:nth-child(1) { background: var(--navy); }
+.trips-table tbody td:nth-child(1) { background: var(--white); }
+
+/* Sticky Name column */
+.trips-table thead th:nth-child(2),
+.trips-table tbody td:nth-child(2) {
+  position: sticky; left: 36px; z-index: 2;
+}
+.trips-table thead th:nth-child(2) { background: var(--navy); }
+.trips-table tbody td:nth-child(2) {
+  background: var(--white);
+  border-right: 1px solid var(--border);
+  box-shadow: 2px 0 5px rgba(15,34,81,0.05);
+}
+/* Keep sticky cols in sync with even/hover row backgrounds */
+.trips-table tbody tr.table-row:nth-child(even) td:nth-child(1),
+.trips-table tbody tr.table-row:nth-child(even) td:nth-child(2) { background: var(--surface); }
+.trips-table tbody tr.table-row:hover td:nth-child(1),
+.trips-table tbody tr.table-row:hover td:nth-child(2) { background: var(--blue-soft); }
+
 .trips-table tbody tr.table-row { border-bottom: 1px solid var(--surface-2); transition: background var(--transition); }
 .trips-table tbody tr.table-row:nth-child(even) { background: var(--surface); }
 .trips-table tbody tr.table-row:hover { background: var(--blue-soft); }
 .trips-table tbody tr.table-row:last-child { border-bottom: none; }
-.trips-table tbody td { padding: 11px 13px; color: var(--text-primary); vertical-align: middle; }
-.row-num { font-size: 12px; font-weight: 600; color: var(--text-muted); width: 32px; }
-.date-cell { white-space: nowrap; font-size: 12.5px; font-variant-numeric: tabular-nums; color: var(--text-mid); }
-.text-cell { max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
-.notes-cell { max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; color: var(--text-muted); }
-.fare-cell { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--navy-mid); white-space: nowrap; font-size: 13px; }
+.trips-table tbody td { padding: 9px 10px; color: var(--text-primary); vertical-align: middle; }
+
+.row-num   { font-size: 11.5px; font-weight: 600; color: var(--text-muted); white-space: nowrap; width: 36px; }
+.date-cell { white-space: nowrap; font-size: 12px; font-variant-numeric: tabular-nums; color: var(--text-mid); }
+.time-cell { font-size: 12px; color: var(--text-secondary); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.text-cell { max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12.5px; }
+.notes-cell { max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; color: var(--text-muted); }
+.fare-cell { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--navy-mid); white-space: nowrap; font-size: 12.5px; }
 
 /* ── User Cell ──────────────────────────────────────────────── */
-.user-cell { display: flex; align-items: center; gap: 9px; }
+.user-cell { display: flex; align-items: center; gap: 8px; min-width: 110px; }
 .mini-avatar {
-  width: 30px; height: 30px; border-radius: 50%;
+  width: 28px; height: 28px; border-radius: 50%;
   background: linear-gradient(135deg, var(--navy-light) 0%, var(--navy-mid) 100%);
   display: flex; align-items: center; justify-content: center;
-  font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0;
+  font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0;
 }
-.user-cell-name { font-size: 13px; font-weight: 600; color: var(--text-primary); line-height: 1.2; }
-.user-cell-role { font-size: 11px; color: var(--text-muted); }
+.user-cell-name { font-size: 12.5px; font-weight: 600; color: var(--text-primary); line-height: 1.2; }
+.user-cell-role { font-size: 10.5px; color: var(--text-muted); }
 
 /* ── Badges ─────────────────────────────────────────────────── */
 .badge { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 20px; font-size: 11.5px; font-weight: 600; white-space: nowrap; }
 .badge.badge-india { background: #e6f4ec; color: var(--india-green); border: 1px solid #b8dfc4; }
 .badge.badge-uae   { background: #fceaea; color: var(--uae-red); border: 1px solid #f5c0b8; }
 .days-pill { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 20px; font-size: 12px; font-weight: 700; background: linear-gradient(135deg, var(--blue-soft) 0%, var(--blue-mid) 100%); color: var(--navy); white-space: nowrap; }
-.days-pill.days-india { background: linear-gradient(135deg, #e6f4ec 0%, #b8dfc4 100%); color: var(--india-green); }
-.days-pill.days-uae   { background: linear-gradient(135deg, #fceaea 0%, #f5c0b8 100%); color: var(--uae-red); }
+.days-pill.days-india { background: #d4edda; color: #155724; }
+.days-pill.days-uae   { background: #cce5ff; color: #004085; }
 .class-badge { display: inline-block; padding: 3px 9px; border-radius: var(--radius-sm); font-size: 11.5px; font-weight: 600; background: linear-gradient(135deg, #e8f4f0 0%, #d0ebdf 100%); color: var(--success); border: 1px solid #b7dfce; }
+
+/* sector pill */
+.sector-pill {
+  display: inline-block; padding: 2px 7px; border-radius: var(--radius-sm);
+  font-size: 11.5px; font-weight: 600; font-family: 'Courier New', monospace;
+  background: var(--blue-soft); color: var(--navy-mid);
+  border: 1px solid var(--blue-mid); white-space: nowrap;
+}
+
+/* days cells */
+.days-cell { text-align: center; font-variant-numeric: tabular-nums; font-weight: 600; }
+.india-days { color: var(--india-green); }
+.uae-days   { color: var(--uae-red); }
+
+/* in-uae tag */
+.in-uae-tag {
+  display: inline-block; padding: 2px 7px; border-radius: 10px;
+  font-size: 11px; font-weight: 600;
+  background: var(--blue-soft); color: var(--navy-light);
+  border: 1px solid var(--blue-mid);
+}
 
 /* ── Mobile cards ───────────────────────────────────────────── */
 .mobile-cards { display: none; flex-direction: column; gap: 12px; }
@@ -399,8 +491,10 @@ select.form-input {
    ════════════════════════════════════════════════════════════ */
 
 /* User form card */
+/* FIX: added margin: 0 auto to centre the form */
 .user-form-card {
-  max-width: 760px; margin-bottom: 20px;
+  max-width: 760px;
+  margin: 0 auto 20px;
   padding: 24px 28px 20px;
   border: 1.5px solid var(--blue-mid);
   background: linear-gradient(135deg, #fafcff 0%, #f0f5ff 100%);
@@ -516,10 +610,12 @@ select.form-input {
 
 @media (max-width: 768px) {
   .main-content { padding: 18px 14px 40px; }
+  /* Hide desktop table; show mobile cards */
   .table-wrapper { display: none; }
   .mobile-cards { display: flex; }
+  /* History tab table stays as a table but scrolls */
   .table-card .table-wrapper { display: block; }
-  .table-card .trips-table { min-width: 560px; }
+  .table-card .trips-table { min-width: 480px; }
   .users-grid { grid-template-columns: 1fr; }
 }
 
@@ -562,7 +658,8 @@ select.form-input {
 @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes spin { to { transform: rotate(360deg); } }
 .fade-in { animation: fadeIn 0.22s ease; }
-/* ── ADD THESE TO YOUR app.component.scss ──────────────────────────────────── */
+
+/* ── Extra component styles ─────────────────────────────────── */
 
 /* Days input styling */
 .days-input {
@@ -592,27 +689,10 @@ select.form-input {
   color: var(--primary, #1a3366);
 }
 
-/* Time cell */
-.time-cell {
-  font-size: 0.78rem;
-  color: var(--text-secondary);
-  white-space: nowrap;
-}
-
 /* Zero days */
 .zero-days {
   color: var(--text-muted, #aaa);
   font-size: 0.8rem;
-}
-
-/* days-india / days-uae pill colours */
-.days-pill.days-india {
-  background: #d4edda;
-  color: #155724;
-}
-.days-pill.days-uae {
-  background: #cce5ff;
-  color: #004085;
 }
 
 /* NRI limit bar */
