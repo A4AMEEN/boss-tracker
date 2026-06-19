@@ -176,55 +176,52 @@ financialYearMode = false;
    *   inUAEDays is manually entered (e.g. days from period start until returnDate)
    *   inIndiaDays = 0
    */
-  triggerAutoCalc(): void {
-    const { username, travelDate, returnDate, startingLocation } = this.tripForm;
+  // Replace the entire triggerAutoCalc() method with this:
+// Replace the entire triggerAutoCalc() method with this:
+triggerAutoCalc(): void {
+  const travelDate = (this.tripForm.travelDate as string)?.trim();
+  const returnDate = (this.tripForm.returnDate as string)?.trim();
 
-    // If "In UAE" or "In India" starting row (no travelDate), skip UAE auto-calc
-    if (!travelDate && !returnDate) return;
-    if (!username?.trim()) return;
-
-    // Client-side UAE calc (instant, no API call needed)
-    if (travelDate && returnDate) {
-      const MS = 86400000;
-      const dep = new Date(travelDate as string).getTime();
-      const ret = new Date(returnDate as string).getTime();
-      if (!isNaN(dep) && !isNaN(ret) && ret > dep) {
-        const uae = Math.max(0, Math.round((ret - dep) / MS) - 1);
-        this.tripForm = { ...this.tripForm, inUAEDays: uae };
-      }
-    }
-
-    // For "In UAE" starting rows (no travelDate but has returnDate):
-    // UAE days are manually entered — don't overwrite
-    if (!travelDate && returnDate) {
-      // Don't touch inUAEDays — user enters manually
-      return;
-    }
-
-    // Server-side India suggestion (needs previous trip context)
-    if (travelDate && username) {
-      this.calcLoading.set(true);
-      this.tripService.calculateDays({
-        username: username.trim(),
-        travelDate: travelDate as string,
-        returnDate: returnDate as string,
-        tripId: this.editingId || undefined,
-      }).subscribe({
-        next: (res) => {
-          this.calcLoading.set(false);
-          // Only update India days — UAE was already set client-side
-          if (res.data.inIndiaDays > 0) {
-            this.tripForm = { ...this.tripForm, inIndiaDays: res.data.inIndiaDays };
-            this.daysAutoCalced = true;
-          }
-        },
-        error: () => { this.calcLoading.set(false); },
-      });
+  // UAE days: client-side calculation
+  if (travelDate && returnDate) {
+    const dep = new Date(travelDate).getTime();
+    const ret = new Date(returnDate).getTime();
+    if (!isNaN(dep) && !isNaN(ret) && ret > dep) {
+      const uaeDays = Math.max(0, Math.round((ret - dep) / 86400000) - 1);
+      this.tripForm = { ...this.tripForm, inUAEDays: uaeDays };
     }
   }
 
-  onTravelDateChange(): void  { this.daysAutoCalced = false; this.triggerAutoCalc(); }
-  onReturnDateChange(): void  { this.daysAutoCalced = false; this.triggerAutoCalc(); }
+  // India days: server-calculated
+  const username = this.tripForm.username?.trim();
+  if (travelDate && username) {
+    this.calcLoading.set(true);
+    this.tripService.calculateDays({
+      username,
+      travelDate,
+      returnDate: returnDate || undefined,
+      tripId: this.editingId || undefined,
+    }).subscribe({
+      next: (res) => {
+        this.calcLoading.set(false);
+        // ← REMOVED the "if (res.data.inIndiaDays > 0)" guard
+        // Always update India days from server — it knows the previous trip context
+        this.tripForm = { ...this.tripForm, inIndiaDays: res.data.inIndiaDays ?? 0 };
+        this.daysAutoCalced = true;
+      },
+      error: () => { this.calcLoading.set(false); },
+    });
+  }
+}
+onTravelDateChange(): void {
+  this.daysAutoCalced = false;
+  setTimeout(() => this.triggerAutoCalc(), 0);   // ← let ngModel flush first
+}
+
+onReturnDateChange(): void {
+  this.daysAutoCalced = false;
+  setTimeout(() => this.triggerAutoCalc(), 0);   // ← let ngModel flush first
+}
   onStartingLocChange(): void {
     // If "In UAE" or "In India", clear travelDate
     if (this.tripForm.startingLocation === 'IN_UAE' || this.tripForm.startingLocation === 'IN_INDIA') {
@@ -242,7 +239,13 @@ financialYearMode = false;
     if (this.listFilter.username?.trim()) f.username = this.listFilter.username.trim();
     if (this.listFilter.year)             f.year     = this.listFilter.year;
     this.tripService.getTrips(f).subscribe({
-      next: (res) => { this.trips.set(res.data); this.loading.set(false); },
+next: (res) => {
+  // Show most recently added records first
+  // If data has _id (MongoDB ObjectId), newest _id = newest record
+  const sorted = [...res.data].reverse();
+  this.trips.set(sorted);
+  this.loading.set(false);
+},
       error: () => { this.loading.set(false); Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to load trips', timer: 2000 }); },
     });
   }
@@ -252,7 +255,7 @@ financialYearMode = false;
     const year = this.historyYear === 'ALL' ? undefined : this.historyYear;
     const user = this.historyUsername === 'ALL' ? undefined : this.historyUsername;
     this.tripService.getStats(year, user).subscribe({
-      next: (res) => { this.stats.set(res.data); this.statsLoading.set(false); },
+      next: (res) => {   console.log('Stats raw:', res.data);this.stats.set(res.data); this.statsLoading.set(false); },
       error: () => { this.statsLoading.set(false); },
     });
   }
@@ -298,12 +301,12 @@ financialYearMode = false;
       ? this.tripService.updateTrip(this.editingId, payload)
       : this.tripService.createTrip(payload);
     op.subscribe({
-      next: () => {
-        this.loading.set(false);
-        Swal.fire({ icon: 'success', title: this.editingId ? 'Updated!' : 'Record Saved!', timer: 1800, showConfirmButton: false });
-        this.resetForm(); this.loadTrips(); this.loadYears();
-        if (this.editingId) this.activeTab.set('list');
-      },
+ next: () => {
+  this.loading.set(false);
+  Swal.fire({ icon: 'success', title: this.editingId ? 'Updated!' : 'Record Saved!', timer: 1800, showConfirmButton: false });
+  this.resetForm(); this.loadTrips(); this.loadYears();
+  this.activeTab.set('list');  // ← Always redirect to All Trips
+},
       error: (err) => { this.loading.set(false); Swal.fire({ icon: 'error', title: 'Error', text: err.error?.error || 'Failed to save' }); },
     });
   }
