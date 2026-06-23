@@ -147,7 +147,18 @@ body {
 .section-header { margin-bottom: 22px; }
 .section-title {
   font-family: 'DM Serif Display', serif;
-  font-size: clamp(20px, 4vw, 26px); font-weight: 400; color: var(--navy);
+  font-size: clamp(22px, 4vw, 28px);   /* slightly larger */
+  font-weight: 400;                     /* keep serif weight — it's naturally bold-looking */
+  color: var(--navy);
+  letter-spacing: -0.01em;             /* tighten for display use */
+  line-height: 1.1;
+}
+/* Add this new rule to boost the emoji+title combo */
+.section-title + .section-sub {
+  font-size: 13.5px;
+  color: var(--text-mid);              /* slightly darker than --text-muted */
+  margin-top: 5px;
+  font-weight: 500;
 }
 .section-sub { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
 .section-header-row {
@@ -169,31 +180,62 @@ body {
 
 /* ── Form ───────────────────────────────────────────────────── */
 /* FIX: added margin: 0 auto so form centres within main-content */
+/* REPLACE the existing .form-card rule */
 .form-card {
   padding: 28px 28px 24px;
   max-width: 760px;
   margin-left: auto;
   margin-right: auto;
+  border: 2px solid var(--blue-mid);             /* was 1px rgba → now solid 2px */
+  box-shadow: 0 4px 24px rgba(15,34,81,0.13);   /* stronger shadow */
 }
 .form-group { display: flex; flex-direction: column; gap: 6px; }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
-.form-label {
-  font-size: 12px; font-weight: 600; color: var(--text-mid);
-  text-transform: uppercase; letter-spacing: 0.06em;
+/* REPLACE the existing placeholder rule */
+.form-input::placeholder {
+  color: #b0b8cc;        /* was --text-muted which was too dark/similar to real text */
+  font-size: 13px;
+  font-style: italic;    /* italics visually separates placeholder from real input */
 }
 .optional { font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--text-muted); font-size: 11px; margin-left: 4px; }
+/* REPLACE the existing .form-input rule */
 .form-input {
-  width: 100%; padding: 10px 13px;
-  border: 1.5px solid var(--border); border-radius: var(--radius-sm);
-  font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text-primary);
-  background: var(--white); outline: none;
-  -webkit-appearance: none; appearance: none;
+  width: 100%;
+  padding: 10px 13px;
+  border: 2px solid var(--border);      /* was 1.5px → now 2px */
+  border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  color: var(--text-primary);
+  background: var(--white);
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
   transition: border-color var(--transition), box-shadow var(--transition);
 }
-.form-input::placeholder { color: var(--text-muted); font-size: 13px; }
-.form-input:hover { border-color: var(--blue-mid); }
-.form-input:focus { border-color: var(--border-focus); box-shadow: 0 0 0 3px rgba(45,82,153,0.10); background: #fafcff; }
-.form-input[readonly] { background: var(--surface); cursor: default; }
+.form-input:hover {
+  border-color: var(--navy-light);      /* was --blue-mid → stronger on hover */
+}
+.form-input:focus {
+  border-color: var(--navy-mid);        /* was --border-focus → richer navy */
+  box-shadow: 0 0 0 3px rgba(26,58,107,0.12), inset 0 1px 2px rgba(0,0,0,0.04);
+  background: #fafcff;
+}
+.form-input[readonly] {
+  background: var(--surface);
+  border-color: var(--border);
+  cursor: default;
+  opacity: 0.8;
+}
+/* REPLACE the existing placeholder rule */
+.form-input::placeholder {
+  color: #b0b8cc;        /* was --text-muted which was too dark/similar to real text */
+  font-size: 13px;
+  font-style: italic;    /* italics visually separates placeholder from real input */
+}
+// .form-input:hover { border-color: var(--blue-mid); }
+// .form-input:focus { border-color: var(--border-focus); box-shadow: 0 0 0 3px rgba(45,82,153,0.10); background: #fafcff; }
+// .form-input[readonly] { background: var(--surface); cursor: default; }
 textarea.form-input { resize: vertical; min-height: 80px; line-height: 1.5; }
 select.form-input {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238892aa' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
@@ -220,12 +262,25 @@ select.form-input {
 .direction-btn .dir-label { font-size: 12px; font-weight: 600; color: var(--navy); margin-top: 2px; }
 
 /* Form divider */
+/* REPLACE the existing .form-divider rule */
 .form-divider {
-  display: flex; align-items: center; gap: 12px;
-  margin: 6px 0 14px; color: var(--text-muted);
-  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 10px 0 16px;
+  color: var(--navy-mid);             /* was --text-muted → now navy-mid */
+  font-size: 11.5px;
+  font-weight: 800;                   /* was 700 → 800 */
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
 }
-.form-divider::before, .form-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.form-divider::before,
+.form-divider::after {
+  content: '';
+  flex: 1;
+  height: 1.5px;                      /* was 1px → 1.5px */
+  background: var(--blue-mid);        /* was --border → blue-mid, more visible */
+}
 
 /* Duration preview */
 .duration-preview {
@@ -739,4 +794,13 @@ select.form-input {
   font-size: 0.7rem;
   color: var(--text-secondary);
   margin-top: 2px;
+}
+.calc-indicator {
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--text-muted);
+  text-transform: none;
+  letter-spacing: 0;
+  margin-left: 6px;
+  font-style: italic;
 }
